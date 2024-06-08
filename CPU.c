@@ -45,6 +45,7 @@ Risc256* cpu_init(size_t aMemorySize){
     lRet->vRD     = (CPUPtrType*)lRet->vRDH;
     lRet->vRE     = (CPUPtrType*)lRet->vREH;
     lRet->vPC     = (CPUPtrType*)lRet->vPCH;
+    lRet->vRR     = (CPUPtrType*)lRet->vRRH;
     
     *lRet->vPC = 128;
     *lRet->vRD = 245;

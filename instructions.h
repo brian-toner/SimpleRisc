@@ -51,7 +51,27 @@ void cpu_qsti(Risc256* aCPUPt);
 void cpu_uitf(Risc256* aCPUPt);
 void cpu_uits(Risc256* aCPUPt);
 
+
 //0x00
+void cpu_set(Risc256* aCPUPt);
+void cpu_set_0(Risc256* aCPUPt);
+void cpu_set_1(Risc256* aCPUPt);
+void cpu_set_2(Risc256* aCPUPt);
+void cpu_set_3(Risc256* aCPUPt);
+void cpu_set_4(Risc256* aCPUPt);
+void cpu_set_5(Risc256* aCPUPt);
+void cpu_set_6(Risc256* aCPUPt);
+void cpu_set_7(Risc256* aCPUPt);
+void cpu_set_8(Risc256* aCPUPt);
+void cpu_set_9(Risc256* aCPUPt);
+void cpu_set_A(Risc256* aCPUPt);
+void cpu_set_B(Risc256* aCPUPt);
+void cpu_set_C(Risc256* aCPUPt);
+void cpu_set_D(Risc256* aCPUPt);
+void cpu_set_E(Risc256* aCPUPt);
+void cpu_set_F(Risc256* aCPUPt);
+
+//0x1X
 void cpu_nop(Risc256* aCPUPt);
 void cpu_qadd(Risc256* aCPUPt);
 void cpu_qsub(Risc256* aCPUPt);
@@ -69,7 +89,7 @@ void cpu_qshr(Risc256* aCPUPt);
 void cpu_its(Risc256* aCPUPt);
 void cpu_itf(Risc256* aCPUPt);
 
-//0x1X
+//0x2X
 void cpu_fexp(Risc256* aCPUPt);
 void cpu_qfadd(Risc256* aCPUPt);
 void cpu_qfsub(Risc256* aCPUPt);
