@@ -36,12 +36,27 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/CPU.o \
+	${OBJECTDIR}/call_instructions.o \
+	${OBJECTDIR}/check_instructions.o \
+	${OBJECTDIR}/cond_instructions.o \
+	${OBJECTDIR}/dec_instructions.o \
+	${OBJECTDIR}/eload_instructions.o \
+	${OBJECTDIR}/esave_instructions.o \
+	${OBJECTDIR}/fath_instructions.o \
+	${OBJECTDIR}/flag_instructions.o \
 	${OBJECTDIR}/half.o \
+	${OBJECTDIR}/iath_instructions.o \
+	${OBJECTDIR}/inc_instructions.o \
 	${OBJECTDIR}/instructions.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/minifloat.o \
+	${OBJECTDIR}/mov_instructions.o \
 	${OBJECTDIR}/output.o \
-	${OBJECTDIR}/tests.o
+	${OBJECTDIR}/pop_instructions.o \
+	${OBJECTDIR}/push_instructions.o \
+	${OBJECTDIR}/set_instructions.o \
+	${OBJECTDIR}/tests.o \
+	${OBJECTDIR}/vcpu_instructions.o
 
 
 # C Compiler Flags
@@ -73,10 +88,60 @@ ${OBJECTDIR}/CPU.o: CPU.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CPU.o CPU.c
 
+${OBJECTDIR}/call_instructions.o: call_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/call_instructions.o call_instructions.c
+
+${OBJECTDIR}/check_instructions.o: check_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/check_instructions.o check_instructions.c
+
+${OBJECTDIR}/cond_instructions.o: cond_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cond_instructions.o cond_instructions.c
+
+${OBJECTDIR}/dec_instructions.o: dec_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dec_instructions.o dec_instructions.c
+
+${OBJECTDIR}/eload_instructions.o: eload_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/eload_instructions.o eload_instructions.c
+
+${OBJECTDIR}/esave_instructions.o: esave_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/esave_instructions.o esave_instructions.c
+
+${OBJECTDIR}/fath_instructions.o: fath_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fath_instructions.o fath_instructions.c
+
+${OBJECTDIR}/flag_instructions.o: flag_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/flag_instructions.o flag_instructions.c
+
 ${OBJECTDIR}/half.o: half.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/half.o half.c
+
+${OBJECTDIR}/iath_instructions.o: iath_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/iath_instructions.o iath_instructions.c
+
+${OBJECTDIR}/inc_instructions.o: inc_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inc_instructions.o inc_instructions.c
 
 ${OBJECTDIR}/instructions.o: instructions.c
 	${MKDIR} -p ${OBJECTDIR}
@@ -93,15 +158,40 @@ ${OBJECTDIR}/minifloat.o: minifloat.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/minifloat.o minifloat.c
 
+${OBJECTDIR}/mov_instructions.o: mov_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mov_instructions.o mov_instructions.c
+
 ${OBJECTDIR}/output.o: output.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/output.o output.c
 
+${OBJECTDIR}/pop_instructions.o: pop_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/pop_instructions.o pop_instructions.c
+
+${OBJECTDIR}/push_instructions.o: push_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/push_instructions.o push_instructions.c
+
+${OBJECTDIR}/set_instructions.o: set_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/set_instructions.o set_instructions.c
+
 ${OBJECTDIR}/tests.o: tests.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tests.o tests.c
+
+${OBJECTDIR}/vcpu_instructions.o: vcpu_instructions.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/vcpu_instructions.o vcpu_instructions.c
 
 # Subprojects
 .build-subprojects:

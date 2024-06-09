@@ -25,6 +25,16 @@ extern "C" {
 #endif
     
 
+#define M_E		2.7182818284590452354	/* e */
+#define M_PI		3.14159265358979323846	/* pi */
+    
+#ifndef true
+    #define true 1
+#endif 
+
+#ifndef false
+    #define false 0
+#endif
 
 typedef unsigned char uint8_t;
     
@@ -37,6 +47,7 @@ typedef unsigned char uint8_t;
     #define WORDMASK 0xFF
     #define WORDSIZE_BITS 8
     #define DWORDSIZE_BITS 16
+    #define MAX_VAL 256
     typedef unsigned char CPUType;
     typedef char CPUSWord;
     typedef unsigned short CPUPtrType;
@@ -45,6 +56,7 @@ typedef unsigned char uint8_t;
     #define PAGESIZE 0xFFFF
     #define SIGNBIT  0x8000
     #define ADDRSIZE 4
+    #define MAX_VAL 65536
     typedef unsigned short CPUType;
     typedef unsigned int CPUPtrType;
     typedef float CPUFloat;
@@ -52,6 +64,7 @@ typedef unsigned char uint8_t;
     #define PAGESIZE 0xFFFFFFFF
     #define SIGNBIT  0x80000000
     #define ADDRSIZE 8
+    #define MAX_VAL 4294967296
     typedef unsigned int CPUType;
     typedef unsigned long CPUPtrType;
     typedef double CPUFloat;
@@ -59,6 +72,7 @@ typedef unsigned char uint8_t;
     #define PAGESIZE 0xFFFFFFFFFFFFFFFF
     #define SIGNBIT  0x8000000000000000
     #define ADDRSIZE 8
+    #define MAX_VAL 18446744073709551616
     typedef unsigned long CPUType;
     typedef unsigned long CPUPtrType;
     typedef double CPUFloat;
@@ -101,6 +115,8 @@ typedef unsigned char uint8_t;
 // Special clear constants
 #define CZOS_MASK 0x0F
 #define CZOSNU_MASK 0x3F
+#define CZ_S_MASK 0x0B
+#define Z_S_MASK 0x0A
     
 // RF Flags
 #define P0_CLR 0b11111110 // Clear IO Privilege Level 0

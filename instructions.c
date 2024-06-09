@@ -10,6 +10,24 @@
 //#include <c++/10/complex>
 //#define _GLIBCXX_COMPLEX 0
 
+uint8_t get_iopl(Risc256* aCPUPt){
+    CPUType IOPL = *aCPUPt->vRF & (P0_SET | P1_SET);
+    return IOPL;
+}
+
+uint8_t get_current_ring(Risc256* aCPUPt) {
+    CPUPtrType pc = *aCPUPt->vPC;
+    if (pc < *aCPUPt->vRING1Start) {
+        return 0; // Ring 0
+    } else if (pc < *aCPUPt->vRING2Start) {
+        return 1; // Ring 1
+    } else if (pc < *aCPUPt->vRING3Start) {
+        return 2; // Ring 2
+    } else {
+        return 3; // Ring 3
+    }
+}
+
 void cpu_set_addr(Risc256* aCPUPt){
     aCPUPt->vRDAddr = aCPUPt->vMemByte+(*aCPUPt->vRD);
     aCPUPt->vREAddr = aCPUPt->vMemByte+(*aCPUPt->vRE);
@@ -17,6 +35,193 @@ void cpu_set_addr(Risc256* aCPUPt){
     aCPUPt->vTPAddr = aCPUPt->vMemByte+(*aCPUPt->vTP);
 
 }
+
+// Helper function to check if we are in ring 0
+bool is_in_ring_0(Risc256* aCPUPt) {
+    return !(*aCPUPt->vRF & (P0_SET | P1_SET));
+}
+
+bool is_iopl_authorized(Risc256* aCPUPt, CPUPtrType addr) {
+    uint8_t current_ring = get_current_ring(aCPUPt);
+    if (current_ring <= (*aCPUPt->vRF & (P0_SET | P1_SET))) {
+        return true; // Authorized if current ring is within IOPL
+    } else {
+        *aCPUPt->vRF |= (E_SET | A_SET); // Set error and authorization error flags if not authorized
+        return false;
+    }
+}
+
+// Helper function to set the T flag
+void set_t_flag(Risc256* aCPUPt, bool condition) {
+    if (*aCPUPt->vRS & X_SET) {
+        *aCPUPt->vRS = (*aCPUPt->vRS & ~T_SET) | (condition ? T_SET : 0);
+    } else {
+        *aCPUPt->vRS = (*aCPUPt->vRS & ~T_SET) | (condition ? T_SET : 0);
+    }
+}
+
+
+InstructionHandler instructionHandlers[256] = {
+    // 0x00 - 0x0F: SET instructions
+    cpu_set_0, cpu_set_1, cpu_set_2, cpu_set_3, cpu_set_4, cpu_set_5, cpu_set_6, cpu_set_7,
+    cpu_set_8, cpu_set_9, cpu_set_A, cpu_set_B, cpu_set_C, cpu_set_D, cpu_set_E, cpu_set_F,
+    
+    // 0x10 - 0x1F: Integer arithmetic instructions
+    cpu_add, cpu_sub, cpu_mul, cpu_div, cpu_mod, cpu_setb, cpu_clrb, cpu_not,
+    cpu_and, cpu_or, cpu_xor, cpu_shl, cpu_shr, cpu_adc, cpu_sbb, cpu_twos,
+    
+    // 0x20 - 0x2F: Floating-point instructions
+    cpu_qfadd, cpu_qfsub, cpu_qfmul, cpu_qfdiv, cpu_qflogbn, cpu_fexp, cpu_qsin, cpu_qcos,
+    cpu_qtan, cpu_qasin, cpu_qacos, cpu_qatan2, cpu_its, cpu_uits, cpu_itf, cpu_uitf, cpu_qfts, cpu_qfti,
+    
+    //0x30-0x3F: Increment instructions
+    cpu_inc_ra, cpu_inc_rb, cpu_inc_rc, cpu_inc_rd_ws, cpu_inc_rd_ds, cpu_inc_re_ws, cpu_inc_re_ds, cpu_inc_ri, 
+    cpu_inc_ra_ri, cpu_inc_rb_ri,  cpu_inc_rc_ri, cpu_inc_rd_ri, cpu_inc_re_ri, cpu_inc_sp_ws, cpu_inc_tp_ws, cpu_inc_rd_re_ws,
+    
+    //0x40-0x4F: Decrement instructions
+    cpu_dec_ra, cpu_dec_rb, cpu_dec_rc, cpu_dec_rd_ws, cpu_dec_rd_ds, cpu_dec_re_ws, cpu_dec_re_ds, cpu_dec_ri, 
+    cpu_dec_ra_ri, cpu_dec_rb_ri, cpu_dec_rc_ri, cpu_dec_rd_ri, cpu_dec_re_ri, cpu_dec_sp_ws, cpu_dec_tp_ws, cpu_dec_rd_re_ws,
+    
+    //0x50-0x5F: Comparison instructions
+    cpu_gt_ra_rb, cpu_lt_ra_rb, cpu_eq_ra_rb, cpu_ge_ra_rb, cpu_le_ra_rb, cpu_ne_ra_rb, cpu_ispos_ra, cpu_isneg_ra, 
+    cpu_fgt_ra_rb, cpu_flt_ra_rb, cpu_feq_ra_rb, cpu_fge_ra_rb, cpu_fle_ra_rb, cpu_fne_ra_rb, cpu_isnan_ra, cpu_isinf_ra,
+    
+    //0x60-0x6F: Comparison instructions
+    cpu_gt_ri_rc, cpu_lt_ri_rc, cpu_eq_ri_rc, cpu_ge_ri_rc, cpu_le_ri_rc, cpu_ne_ri_rc, cpu_isnull_rd, cpu_isnull_re, 
+    cpu_gt_rd_re, cpu_lt_rd_re, cpu_eq_rd_re, cpu_ge_rd_re, cpu_le_rd_re, cpu_ne_rd_re, cpu_inbound_re, cpu_inbound_rd,
+    
+    //0x70-0x7F: Check instructions
+    cpu_getstatus, cpu_getflags, cpu_isset, cpu_isclear, cpu_istrue, cpu_isfalse, cpu_iscset, cpu_iscclear, 
+    cpu_isoset, cpu_isoclear, cpu_istime, cpu_tpsh_t, cpu_and_tpop_t, cpu_or_tpop_t, cpu_nand_tpop_t, cpu_nor_tpop_t,
+    
+    //0x80-0x8F: Flag instructions
+    cpu_set_t, cpu_clr_f, cpu_not_t, cpu_logical_or, cpu_logical_and, cpu_logical_not, cpu_disable_nmi, 
+    cpu_enable_nmi, cpu_setbreak, cpu_clrbreak, cpu_lowmem, cpu_clr_error, cpu_clrrs, cpu_clr_autherror, cpu_is_autherror, cpu_set_iopl,
+    
+    //0x90-0x9F: Stack push instructions
+    cpu_push_sp_ra, cpu_push_sp_rb, cpu_push_sp_rc, cpu_push_sp_ri, cpu_push_sp_rd, cpu_push_sp_re, cpu_push_sp_rr, cpu_push_sp_rs,
+    cpu_push_tp_ra, cpu_push_tp_rb, cpu_push_tp_rc, cpu_push_tp_ri, cpu_push_tp_rd, cpu_push_tp_re, cpu_push_tp_rr, cpu_pushall,
+    
+    //0xA0-0xAF: Stack pop instructions
+    cpu_pop_sp_ra, cpu_pop_sp_rb, cpu_pop_sp_rc, cpu_pop_sp_ri, cpu_pop_sp_rd, cpu_pop_sp_re, cpu_pop_sp_rr, cpu_pop_sp_rs,
+    cpu_pop_tp_ra, cpu_pop_tp_rb, cpu_pop_tp_rc, cpu_pop_tp_ri, cpu_pop_tp_rd, cpu_pop_tp_re, cpu_pop_tp_rr, cpu_popall,
+    
+    //0xB0-0xBF: Extended save instructions
+    cpu_push_re_ra, cpu_push_re_rb, cpu_push_re_rc, cpu_push_re_ri, cpu_push_re_rd, cpu_push_re_rr, cpu_cpy_re_ra, cpu_cpy_re_rb,
+    cpu_cpy_re_rc, cpu_cpy_re_ri, cpu_cpy_re_rd, cpu_cpy_re_rr, cpu_cpy_re_rr_ra, cpu_cpy_re_rr_ri_ra, cpu_cpyblk_re_rd_rc,
+    
+    //0xC0-0xCF: Extended load instructions
+    cpu_pop_re_ra, cpu_pop_re_rb, cpu_pop_re_rc, cpu_pop_re_ri, cpu_pop_re_rd, cpu_pop_re_rr, cpu_cpy_ra_re, cpu_cpy_rb_re,
+    cpu_cpy_rc_re, cpu_cpy_ri_re, cpu_cpy_rd_re, cpu_cpy_rr_re, cpu_cpy_ra_re_rr, cpu_cpy_ra_re_rr_ri, cpu_cpyblk_rd_re_rc,
+    
+    //0xD0-0xDF: Move instructions
+    cpu_mov_ra_rr, cpu_mov_rb_rr, cpu_mov_rc_rr, cpu_mov_rd_rr, cpu_mov_re_rr, cpu_mov_ri_rr, cpu_mov_rr_wordsize, cpu_mov_re_re,
+    cpu_mov_rd_rd, cpu_mov_ra_0, cpu_mov_rb_0, cpu_mov_rc_0, cpu_mov_rd_0, cpu_mov_re_0, cpu_mov_ri_0, cpu_mov_rr_0,
+    
+    //0xE0-0xEF: VCPU instructions
+    cpu_vinit, cpu_vstart, cpu_vstop, cpu_vstep,  cpu_vsave, cpu_vload, cpu_vrsave, cpu_vrload,
+    cpu_vbegin, cpu_vend, cpu_vrssetre, cpu_vcopy, cpu_viserror, cpu_vishlt, cpu_vswinterrupt, cpu_vhwinterrupt,
+        
+    //0xF0-0xFF: Control instructions
+    cpu_func_call, cpu_swi, cpu_branch, cpu_branch_t, cpu_branch_f, cpu_ternary_ra_rb, cpu_ternary_rd_re, cpu_ternary_rd_re_mem, 
+    cpu_rfi, cpu_ret, cpu_reset_sp, cpu_reset_tp, cpu_time, cpu_jmp, cpu_rjmp, cpu_hlt
+    
+};
+
+void executeInstruction(Risc256* cpu) {
+    uint8_t opcode = *(cpu->vMemByte + *(cpu->vPC));
+    instructionHandlers[opcode](cpu);
+    (*(cpu->vPC))++; // Increment the program counter after executing the instruction
+}
+
+
+
+// Helper function to update stack pointer for push operations with boundary and ring 0 check for the regular stack
+bool update_stack_pointer_push(Risc256* aCPUPt, size_t increment) {
+    if (is_in_ring_0(aCPUPt)) {
+        if (*aCPUPt->vSP + increment <= *aCPUPt->vSEP) {
+            *aCPUPt->vSP += increment;
+            return true;
+        } else {
+            *aCPUPt->vRF |= E_SET; // Set error flag if stack overflow
+        }
+    } else {
+        *aCPUPt->vRF |= (E_SET | A_SET); // Set error and authorization error flags if not in ring 0
+    }
+    return false;
+}
+
+// Helper function to update stack pointer for pop operations with boundary and ring 0 check for the regular stack
+bool update_stack_pointer_pop(Risc256* aCPUPt, size_t decrement) {
+    if (is_in_ring_0(aCPUPt)) {
+        if (*aCPUPt->vSP >= *aCPUPt->vSSP + decrement) {
+            *aCPUPt->vSP -= decrement;
+            return true;
+        } else {
+            *aCPUPt->vRF |= E_SET; // Set error flag if stack underflow
+        }
+    } else {
+        *aCPUPt->vRF |= (E_SET | A_SET); // Set error and authorization error flags if not in ring 0
+    }
+    return false;
+}
+
+// Helper function to push a register onto the regular stack
+void push_register_to_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
+    if (update_stack_pointer_push(aCPUPt, size)) {
+        unsigned char* spAddr = aCPUPt->vMemByte + (*aCPUPt->vSP - size);
+        memcpy(spAddr, reg, size);
+    }
+}
+
+// Helper function to pop a register from the regular stack
+void pop_register_from_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
+    if (update_stack_pointer_pop(aCPUPt, size)) {
+        unsigned char* spAddr = aCPUPt->vMemByte + *aCPUPt->vSP;
+        memcpy(reg, spAddr, size);
+    }
+}
+
+
+// Helper function to update stack pointer for push operations with boundary check for the temporary stack
+bool update_temp_stack_pointer_push(Risc256* aCPUPt, size_t increment) {
+    if (*aCPUPt->vTP + increment <= *aCPUPt->vTEP) {
+        *aCPUPt->vTP += increment;
+        return true;
+    } else {
+        *aCPUPt->vRF |= E_SET; // Set error flag if stack overflow
+    }
+    return false;
+}
+
+// Helper function to update stack pointer for pop operations with boundary check for the temporary stack
+bool update_temp_stack_pointer_pop(Risc256* aCPUPt, size_t decrement) {
+    if (*aCPUPt->vTP >= *aCPUPt->vTSP + decrement) {
+        *aCPUPt->vTP -= decrement;
+        return true;
+    } else {
+        *aCPUPt->vRF |= E_SET; // Set error flag if stack underflow
+    }
+    return false;
+}
+
+// Helper function to push a register onto the temporary stack
+void push_register_to_temp_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
+    if (update_temp_stack_pointer_push(aCPUPt, size)) {
+        unsigned char* tpAddr = aCPUPt->vMemByte + (*aCPUPt->vTP - size);
+        memcpy(tpAddr, reg, size);
+    }
+}
+
+// Helper function to pop a register from the temporary stack
+void pop_register_from_temp_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
+    if (update_temp_stack_pointer_pop(aCPUPt, size)) {
+        unsigned char* tpAddr = aCPUPt->vMemByte + *aCPUPt->vTP;
+        memcpy(reg, tpAddr, size);
+    }
+}
+
+
 
 double logbn(double a, double b){
     return log(a)/log(b);
@@ -96,93 +301,6 @@ void cpu_qsti(Risc256* aCPUPt){
     
 }
 
-
-
-void cpu_addc(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    bool lBSign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+lVal2;
-    
-    
-    //Add with carry if we want to implement that
-    if( (*aCPUPt->vRS*C_SET)!=0 ){
-        lRet+=1;
-    }
-    *aCPUPt->vRA = lRet;
-
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(
-                Z_SET
-            ):(
-                0
-            )) | 
-            
-        ((lSign)?(
-                S_SET
-            ):(
-                0
-            )) |
-            
-        ((lASign == lBSign && lSign != lASign)?(
-                O_SET
-            ):(
-                0
-            )) |
-            
-        ((lVal2 > lRet)?(
-                C_SET
-            ):(
-                0
-            )));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-void cpu_subb(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    bool lBSign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1-lVal2;
-    
-    
-    //Add with carry if we want to implement that
-    if( (*aCPUPt->vRS*C_SET)!=0 ){
-        lRet-=1;
-    }
-    *aCPUPt->vRA = lRet;
-
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lASign == lBSign && lSign != lASign)?(O_SET):(0)) |
-        ((lVal2 > lRet)?(C_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-    
-
-}
-
-
 void cpu_nop(Risc256* aCPUPt){
     return;
 }
@@ -240,655 +358,16 @@ void cpu_qshr(Risc256* aCPUPt){
     *aCPUPt->vRA = (*aCPUPt->vRA)>>(*aCPUPt->vRB);
 }
 
-//=========================================================//
-// 0x00
-void cpu_set(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | ( *(aCPUPt->vMemByte+*aCPUPt->vPC) & 0x0F);
-}
 
-void cpu_set_0(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x00;
-}
-
-void cpu_set_1(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x01;
-}
-
-void cpu_set_2(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x02;
-}
-
-void cpu_set_3(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x03;
-}
-
-void cpu_set_4(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x04;
-}
-
-void cpu_set_5(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x05;
-}
-
-void cpu_set_6(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x06;
-}
-
-void cpu_set_7(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x07;
-}
-
-void cpu_set_8(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x08;
-}
-
-void cpu_set_9(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x09;
-}
-
-void cpu_set_A(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x0A;
-}
-
-void cpu_set_B(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x0B;
-}
-
-void cpu_set_C(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x0C;
-}
-
-void cpu_set_D(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x0D;
-}
-
-void cpu_set_E(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x0E;
-}
-
-void cpu_set_F(Risc256* aCPUPt) {
-    *aCPUPt->vRR = (*aCPUPt->vRR << 4) | 0x0F;
-}
 
 
 //=========================================================//
 // 0x1X
 
-// 0x10
-void cpu_add(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    bool lBSign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+lVal2;
-    *aCPUPt->vRA = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    // Set the flags based on the result
-    lRFPt |= 
-        ((lRet == 0) ? Z_SET : 0) | // Zero flag
-        (lSign ? S_SET : 0) | // Sign flag
-        ((lASign == lBSign && lSign != lASign) ? O_SET : 0) | // Overflow flag
-        ((lRet < lVal1) ? C_SET : 0); // Carry flag (unsigned overflow)
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-//0x11
-void cpu_sub(Risc256* aCPUPt) {
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (lVal1 & SIGNBIT) != 0;
-    bool lBSign = (lVal2 & SIGNBIT) != 0;
-
-    CPUType lRet = lVal1 - lVal2;
-    *aCPUPt->vRA = lRet;
-
-    bool lSign = (lRet & SIGNBIT) != 0;
-
-    /* Set flags */
-    CPUType lRFPt = *aCPUPt->vRS & CZOS_MASK;
-
-    lRFPt |= 
-        ((lRet == 0 ? Z_SET : 0) | 
-         (lSign ? S_SET : 0) |
-         (lASign != lBSign && lSign != lASign ? O_SET : 0) |  // Adjusted overflow condition
-         (lVal1 < lVal2 ? C_SET : 0));  // Correct carry flag calculation
-
-    *aCPUPt->vRS = lRFPt;
-}
-
-
-
-
-// 0x12
-void cpu_mul(Risc256* aCPUPt) {
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT) != 0;
-    bool lBSign = (*aCPUPt->vRB & SIGNBIT) != 0;
-
-    CPUType lRet = lVal1 * lVal2;
-    *aCPUPt->vRA = lRet;
-
-    bool lSign = (lRet & SIGNBIT) != 0;
-
-    /* Set flags */
-    CPUType lRFPt = *aCPUPt->vRS & CZOS_MASK;
-
-    lRFPt |=
-        ((lRet == 0) ? (Z_SET) : (0)) | // Zero Flag
-        ((lSign) ? (S_SET) : (0)) |     // Sign Flag
-        (((lASign != lBSign) && lSign != lASign) ? (O_SET) : (0)); // Overflow Flag
-
-
-    *aCPUPt->vRS = lRFPt;
-}
-
-// 0x13
-void cpu_div(Risc256* aCPUPt) {
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    // Resetting all relevant flags initially
-    *aCPUPt->vRF &= E_CLR;
-    *aCPUPt->vRS &= CZOSNU_MASK;
-    // Check for division by zero
-    if (lVal2 == 0) {
-        *aCPUPt->vRF |= E_SET; // Set Undefined Flag and Error Flag
-        *aCPUPt->vRS |= U_SET;
-        return;
-    }
-
-    CPUType lRet = lVal1 / lVal2;
-    *aCPUPt->vRA = lRet;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0)  // Sign Flag
-                 |  (cputype_is_inf(lRet) ? N_SET : 0)     // Infinity Flag
-                 |  (cputype_is_nan(lRet) ? U_SET : 0);   // Undefined Flag
-}
-
-// 0x14
-void cpu_mod(Risc256* aCPUPt) {
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    // Resetting all relevant flags initially
-    *aCPUPt->vRF &= E_CLR;
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Check for division by zero
-    if (lVal2 == 0) {
-        *aCPUPt->vRF |= E_SET; // Set Undefined Flag and Error Flag
-        *aCPUPt->vRS |= U_SET;
-        return;
-    }
-
-    CPUType lRet = lVal1 % lVal2;
-    *aCPUPt->vRA = lRet;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0)  // Sign Flag
-                 |  (cputype_is_inf(lRet) ? N_SET : 0)     // Infinity Flag
-                 |  (cputype_is_nan(lRet) ? U_SET : 0);   // Undefined Flag
-}
-
-
-// 0x15
-void cpu_setbit(Risc256* aCPUPt) {
-    CPUType bitPosition = *aCPUPt->vRB;
-    *aCPUPt->vRA |= (ONEBIT << bitPosition);
-}
-
-// 0x16
-void cpu_clrtbit(Risc256* aCPUPt) {
-    CPUType bitPosition = *aCPUPt->vRB;
-    *aCPUPt->vRA &= (ONEBIT << bitPosition);
-}
-
-// 0x17
-void cpu_not(Risc256* aCPUPt) {
-    // Perform bitwise NOT operation on the value in RA
-    CPUType lRet = ~(*aCPUPt->vRA);
-    *aCPUPt->vRA = lRet;
-
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-    // The Not operation doesn't generate overflow, carry, infinity or undefined results
-}
-
-// 0x18
-void cpu_and(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    CPUType lRet = lVal1&lVal2;
-    
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-
-}
-
-// 0x19
-void cpu_or(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    CPUType lRet = lVal1&lVal2;
-    
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-}
-
-// 0x1A
-void cpu_xor(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    CPUType lRet = lVal1&lVal2;
-    
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-}
-
-// 0x1B
-void cpu_shl(Risc256* aCPUPt) {
-    CPUType lVal = *aCPUPt->vRA;
-    CPUType lShift = *aCPUPt->vRB;
-
-    // Reset the carry flag
-    *aCPUPt->vRS &= C_CLR;
-
-    // Check and set the carry flag if any of the shifted out bits are 1
-    if (lVal & (WORDMASK << (WORDSIZE_BITS - lShift))) {
-        *aCPUPt->vRS |= C_SET;
-    }
-
-    // Perform the left shift operation
-    lVal <<= lShift;
-
-    // Store the result back in RA
-    *aCPUPt->vRA = lVal;
-}
-
-// 0x1C
-void cpu_shr(Risc256* aCPUPt) {
-    CPUType lVal = *aCPUPt->vRA;
-    CPUType lShift = *aCPUPt->vRB;
-
-    // Reset the carry flag
-    *aCPUPt->vRS &= C_CLR;
-
-    // Check and set the carry flag if any of the rightmost bits that are shifted out are 1
-    if (lVal & ((1 << lShift) - 1)) {
-        *aCPUPt->vRS |= C_SET;
-    }
-
-    // Perform the right shift operation
-    lVal >>= lShift;
-
-    // Store the result back in RA
-    *aCPUPt->vRA = lVal;
-}
-
-// 0x1F
-void cpu_twos(Risc256* aCPUPt) {
-    // Perform Two's Complement operation on the value in RA
-    CPUType lRet = ~(*aCPUPt->vRA) + 1;
-    *aCPUPt->vRA = lRet;
-
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-    // The Two's Complement operation doesn't generate overflow, carry, infinity or undefined results
-}
-
 
 //=========================================================//
 // 0x2X
 
-
-// 0x20
-void cpu_qfadd(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    double lVal1d = cputype_to_float(lVal1);
-    double lVal2d = cputype_to_float(lVal2);
-    
-    double lRet = lVal1d+lVal2d;
-    *aCPUPt->vRA = float_to_cputype(lRet);
-
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x21
-void cpu_qfsub(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    double lVal1d = cputype_to_float(lVal1);
-    double lVal2d = cputype_to_float(lVal2);
-    
-    double lRet = lVal1d-lVal2d;
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x22
-void cpu_qfmul(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    double lVal1d = cputype_to_float(lVal1);
-    double lVal2d = cputype_to_float(lVal2);
-    
-    double lRet = lVal1d*lVal2d;
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x23
-void cpu_qfdiv(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    double lVal1d = cputype_to_float(lVal1);
-    double lVal2d = cputype_to_float(lVal2);
-    
-    double lRet = lVal1d/lVal2d;
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-
-
-
-// 0x24
-void cpu_qflogbn(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    double lVal1d = cputype_to_float(lVal1);
-    double lVal2d = cputype_to_float(lVal2);
-
-    double lRet = logbn(lVal1d,lVal2d);
-    *aCPUPt->vRA = float_to_cputype(lRet);
-
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-    
-}
-
-
-// 0x25
-void cpu_fexp(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    CPUFloat lVal1d = cputype_to_float(lVal1);
-    CPUFloat lVal2d = cputype_to_float(lVal2);
-    
-    CPUFloat lRet = pow(lVal1d,lVal2d);
-    
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-void cpu_qpi(Risc256* aCPUPt){
-    *aCPUPt->vRB = float_to_cputype(M_PI);
-}
-
-void cpu_qe(Risc256* aCPUPt){
-    *aCPUPt->vRB = float_to_cputype(M_E);
-}
-
-// 0x26
-void cpu_qsin(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    double lVal1d = cputype_to_float(lVal1);
-    double lRet = sin(lVal1d);
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x27
-void cpu_qcos(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    double lVal1d = cputype_to_float(lVal1);
-    double lRet = cos(lVal1d);
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x28
-void cpu_qtan(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    double lVal1d = cputype_to_float(lVal1);
-    double lRet = tan(lVal1d);
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x29
-void cpu_qasin(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    double lVal1d = cputype_to_float(lVal1);
-    double lRet = asin(lVal1d);
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x2A
-void cpu_qacos(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    double lVal1d = cputype_to_float(lVal1);
-    double lRet = acos(lVal1d);
-    *aCPUPt->vRA = float_to_cputype(lRet);
-    
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-// 0x2B
-void cpu_qatan2(Risc256* aCPUPt){
-
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
-
-    double lVal1d = cputype_to_float(lVal1);
-    double lVal2d = cputype_to_float(lVal2);
-
-    double lRet = atan2(lVal1d,lVal2d);
-
-    // Reset relevant flags
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Set flags based on the result
-    *aCPUPt->vRS |= (isnan(lRet) ? U_SET : 0)    // Undefined flag for NaN
-                 | (isinf(lRet) ? N_SET : 0)    // Infinity flag for infinity
-                 | ((lRet == 0.0) ? Z_SET : 0)  // Zero flag for zero result
-                 | ((lRet < 0.0) ? S_SET : 0);  // Sign flag for negative result
-}
-
-
-// 0x2C
-void cpu_its(Risc256* aCPUPt){
-    //int to string
-    char* lBuff = (char*)(aCPUPt->vRA+*aCPUPt->vRE);
-    sprintf(lBuff,"%d", (CPUSWord)*aCPUPt->vRA);
-    
-}
-
-void cpu_uits(Risc256* aCPUPt){
-    
-    char* lBuff = (char*)(aCPUPt->vRA+*aCPUPt->vRE);
-    sprintf(lBuff,"%d", (CPUType)*aCPUPt->vRA);
-    
-}
-
-// 0x2D
-void cpu_itf(Risc256* aCPUPt){  
-    //int to float
-    *aCPUPt->vRA = float_to_cputype((CPUSWord)*aCPUPt->vRA);
-}
-
-void cpu_uitf(Risc256* aCPUPt){    
-    *aCPUPt->vRA = float_to_cputype(*aCPUPt->vRA);
-}
-
-// 0x2E
-void cpu_qfts(Risc256* aCPUPt){
-    
-    //char* lBuff = (char*)aCPUPt->vREAddr;
-    char* lBuff = (char*)(aCPUPt->vRA+*aCPUPt->vRE);
-    CPUFloat lVal1 = cputype_to_float(*aCPUPt->vRA);
-    sprintf(lBuff,"%g", lVal1);    
-    
-}
-
-// 0x2F
-void cpu_qfti(Risc256* aCPUPt){
-    
-    CPUFloat lFRet = cputype_to_float(*aCPUPt->vRA);
-    CPUType lRet = lFRet;
-    *aCPUPt->vRA = lRet;
-
-}
 
 
 //=========================================================//
@@ -978,148 +457,148 @@ void cpu_qfti(Risc256* aCPUPt){
 //=========================================================//
 // 0x3 - INC
 
-
-void cpu_inc_ra(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRA;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+1;
-    *aCPUPt->vRA = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET|C_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lSign != lASign)?(O_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-void cpu_inc_rb(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+1;
-    *aCPUPt->vRB = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET|C_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lSign != lASign)?(O_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-void cpu_inc_rc(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRC;
-
-    bool lASign = (*aCPUPt->vRC & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+1;
-    *aCPUPt->vRC = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET|C_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lSign != lASign)?(O_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-
-void cpu_inc_ri(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRI;
-
-    bool lASign = (*aCPUPt->vRI & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+1;
-    *aCPUPt->vRI = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET|C_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lSign != lASign)?(O_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-void cpu_inci(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRI;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    bool lBSign = (*aCPUPt->vRI & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+lVal2;
-    *aCPUPt->vRA = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lASign == lBSign && lSign != lASign)?(O_SET):(0)) |
-        ((lVal2 > lRet)?(C_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-void cpu_incdws(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRA;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    CPUType lRet = lVal1+WORDSIZE;
-    *aCPUPt->vRA = lRet;
-    
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lSign != lASign)?(O_SET):(0)) |
-        ((lVal1 > lRet)?(C_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
+//
+//void cpu_inc_ra(Risc256* aCPUPt){
+//        
+//    CPUType lVal1 = *aCPUPt->vRA;
+//
+//    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
+//
+//    CPUType lRet = lVal1+1;
+//    *aCPUPt->vRA = lRet;
+//    
+//    bool lSign = (lRet & SIGNBIT)!=0;
+//
+//    /*Set flags*/
+//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//
+//    lRFPt |= 
+//        (((lRet==0)?(Z_SET|C_SET):(0)) | 
+//        ((lSign)?(S_SET):(0)) |
+//        ((lSign != lASign)?(O_SET):(0)));
+//
+//    *aCPUPt->vRS = lRFPt;
+//            
+//}
+//
+//void cpu_inc_rb(Risc256* aCPUPt){
+//        
+//    CPUType lVal1 = *aCPUPt->vRB;
+//
+//    bool lASign = (*aCPUPt->vRB & SIGNBIT)!=0;
+//
+//    CPUType lRet = lVal1+1;
+//    *aCPUPt->vRB = lRet;
+//    
+//    bool lSign = (lRet & SIGNBIT)!=0;
+//
+//    /*Set flags*/
+//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//
+//    lRFPt |= 
+//        (((lRet==0)?(Z_SET|C_SET):(0)) | 
+//        ((lSign)?(S_SET):(0)) |
+//        ((lSign != lASign)?(O_SET):(0)));
+//
+//    *aCPUPt->vRS = lRFPt;
+//            
+//}
+//
+//void cpu_inc_rc(Risc256* aCPUPt){
+//        
+//    CPUType lVal1 = *aCPUPt->vRC;
+//
+//    bool lASign = (*aCPUPt->vRC & SIGNBIT)!=0;
+//
+//    CPUType lRet = lVal1+1;
+//    *aCPUPt->vRC = lRet;
+//    
+//    bool lSign = (lRet & SIGNBIT)!=0;
+//
+//    /*Set flags*/
+//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//
+//    lRFPt |= 
+//        (((lRet==0)?(Z_SET|C_SET):(0)) | 
+//        ((lSign)?(S_SET):(0)) |
+//        ((lSign != lASign)?(O_SET):(0)));
+//
+//    *aCPUPt->vRS = lRFPt;
+//            
+//}
+//
+//
+//void cpu_inc_ri(Risc256* aCPUPt){
+//        
+//    CPUType lVal1 = *aCPUPt->vRI;
+//
+//    bool lASign = (*aCPUPt->vRI & SIGNBIT)!=0;
+//
+//    CPUType lRet = lVal1+1;
+//    *aCPUPt->vRI = lRet;
+//    
+//    bool lSign = (lRet & SIGNBIT)!=0;
+//
+//    /*Set flags*/
+//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//
+//    lRFPt |= 
+//        (((lRet==0)?(Z_SET|C_SET):(0)) | 
+//        ((lSign)?(S_SET):(0)) |
+//        ((lSign != lASign)?(O_SET):(0)));
+//
+//    *aCPUPt->vRS = lRFPt;
+//            
+//}
+//
+//void cpu_inci(Risc256* aCPUPt){
+//        
+//    CPUType lVal1 = *aCPUPt->vRA;
+//    CPUType lVal2 = *aCPUPt->vRI;
+//
+//    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
+//    bool lBSign = (*aCPUPt->vRI & SIGNBIT)!=0;
+//
+//    CPUType lRet = lVal1+lVal2;
+//    *aCPUPt->vRA = lRet;
+//    
+//    bool lSign = (lRet & SIGNBIT)!=0;
+//
+//    /*Set flags*/
+//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//
+//    lRFPt |= 
+//        (((lRet==0)?(Z_SET):(0)) | 
+//        ((lSign)?(S_SET):(0)) |
+//        ((lASign == lBSign && lSign != lASign)?(O_SET):(0)) |
+//        ((lVal2 > lRet)?(C_SET):(0)));
+//
+//    *aCPUPt->vRS = lRFPt;
+//            
+//}
+//
+//void cpu_incdws(Risc256* aCPUPt){
+//        
+//    CPUType lVal1 = *aCPUPt->vRA;
+//
+//    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
+//    CPUType lRet = lVal1+WORDSIZE;
+//    *aCPUPt->vRA = lRet;
+//    
+//    bool lSign = (lRet & SIGNBIT)!=0;
+//
+//    /*Set flags*/
+//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//
+//    lRFPt |= 
+//        (((lRet==0)?(Z_SET):(0)) | 
+//        ((lSign)?(S_SET):(0)) |
+//        ((lSign != lASign)?(O_SET):(0)) |
+//        ((lVal1 > lRet)?(C_SET):(0)));
+//
+//    *aCPUPt->vRS = lRFPt;
+//            
+//}
 
 
 void cpu_qinc(Risc256* aCPUPt, CPUType* aRet){
@@ -1547,14 +1026,14 @@ void cpu_tpprl(Risc256* aCPUPt){
 //=========================================================//
 // 0xCX - Push
 void cpu_psh_int(Risc256* aCPUPt){
-    *aCPUPt->vSP -= WORDSIZE*16;    //16 Registers
+    *aCPUPt->vSP += WORDSIZE*16;    //16 Registers
     aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
     memcpy(aCPUPt->vSPAddr+1, aCPUPt->vRA, WORDSIZE*16);
     
 }
 
 void cpu_psh_call(Risc256* aCPUPt){
-    *aCPUPt->vSP -= WORDSIZE*14;    //16 Registers
+    *aCPUPt->vSP += WORDSIZE*14;    //16 Registers
     aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
     memcpy(aCPUPt->vSPAddr+1, aCPUPt->vRA, WORDSIZE*14);
     
@@ -1562,7 +1041,7 @@ void cpu_psh_call(Risc256* aCPUPt){
 
 void cpu_psh(Risc256* aCPUPt, CPUType* aReg){
     *(aCPUPt->vSPAddr) = (*aReg);
-    *aCPUPt->vSP -= WORDSIZE;
+    *aCPUPt->vSP += WORDSIZE;
     aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
 }
 
