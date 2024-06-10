@@ -1,6 +1,6 @@
 #include "instructions.h"
 
-#if false
+#if 1
 // 0x10
 void cpu_add(Risc256* aCPUPt){
         
@@ -133,13 +133,13 @@ void cpu_mod(Risc256* aCPUPt) {
 
 
 // 0x15
-void cpu_setbit(Risc256* aCPUPt) {
+void cpu_setb(Risc256* aCPUPt) {
     CPUType bitPosition = *aCPUPt->vRB;
     *aCPUPt->vRA |= (ONEBIT << bitPosition);
 }
 
 // 0x16
-void cpu_clrtbit(Risc256* aCPUPt) {
+void cpu_clrb(Risc256* aCPUPt) {
     CPUType bitPosition = *aCPUPt->vRB;
     *aCPUPt->vRA &= (ONEBIT << bitPosition);
 }
@@ -371,9 +371,7 @@ void cpu_twos(Risc256* aCPUPt) {
     // The Two's Complement operation doesn't generate overflow, carry, infinity or undefined results
 }
 
-#endif
-
-#if 1
+#elif
 
 // 10 - ADC: Add with Carry
 void cpu_add(Risc256* aCPUPt) {

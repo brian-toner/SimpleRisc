@@ -35,13 +35,18 @@
         <itemPath>set_instructions.c</itemPath>
         <itemPath>vcpu_instructions.c</itemPath>
       </logicalFolder>
+      <logicalFolder name="f2" displayName="tests" projectFiles="true">
+        <itemPath>fath_tests.c</itemPath>
+        <itemPath>iath_tests.c</itemPath>
+        <itemPath>set_tests.c</itemPath>
+        <itemPath>tests.c</itemPath>
+      </logicalFolder>
       <itemPath>CPU.c</itemPath>
       <itemPath>half.c</itemPath>
       <itemPath>instructions.c</itemPath>
       <itemPath>main.c</itemPath>
       <itemPath>minifloat.c</itemPath>
       <itemPath>output.c</itemPath>
-      <itemPath>tests.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -91,6 +96,8 @@
       </item>
       <item path="fath_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="fath_tests.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="flag_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="half.c" ex="false" tool="0" flavor2="0">
@@ -98,6 +105,8 @@
       <item path="half.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="iath_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="iath_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="inc_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -122,6 +131,8 @@
       <item path="push_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="set_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="set_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="tests.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -169,6 +180,8 @@
       </item>
       <item path="fath_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="fath_tests.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="flag_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="half.c" ex="false" tool="0" flavor2="0">
@@ -176,6 +189,8 @@
       <item path="half.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="iath_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="iath_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="inc_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -200,6 +215,8 @@
       <item path="push_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="set_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="set_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="tests.c" ex="false" tool="0" flavor2="0">
       </item>

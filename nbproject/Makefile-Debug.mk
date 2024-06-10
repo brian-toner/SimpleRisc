@@ -43,9 +43,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/eload_instructions.o \
 	${OBJECTDIR}/esave_instructions.o \
 	${OBJECTDIR}/fath_instructions.o \
+	${OBJECTDIR}/fath_tests.o \
 	${OBJECTDIR}/flag_instructions.o \
 	${OBJECTDIR}/half.o \
 	${OBJECTDIR}/iath_instructions.o \
+	${OBJECTDIR}/iath_tests.o \
 	${OBJECTDIR}/inc_instructions.o \
 	${OBJECTDIR}/instructions.o \
 	${OBJECTDIR}/main.o \
@@ -55,6 +57,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/pop_instructions.o \
 	${OBJECTDIR}/push_instructions.o \
 	${OBJECTDIR}/set_instructions.o \
+	${OBJECTDIR}/set_tests.o \
 	${OBJECTDIR}/tests.o \
 	${OBJECTDIR}/vcpu_instructions.o
 
@@ -123,6 +126,11 @@ ${OBJECTDIR}/fath_instructions.o: fath_instructions.c
 	${RM} "$@.d"
 	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fath_instructions.o fath_instructions.c
 
+${OBJECTDIR}/fath_tests.o: fath_tests.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fath_tests.o fath_tests.c
+
 ${OBJECTDIR}/flag_instructions.o: flag_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -137,6 +145,11 @@ ${OBJECTDIR}/iath_instructions.o: iath_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/iath_instructions.o iath_instructions.c
+
+${OBJECTDIR}/iath_tests.o: iath_tests.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/iath_tests.o iath_tests.c
 
 ${OBJECTDIR}/inc_instructions.o: inc_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
@@ -182,6 +195,11 @@ ${OBJECTDIR}/set_instructions.o: set_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/set_instructions.o set_instructions.c
+
+${OBJECTDIR}/set_tests.o: set_tests.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/set_tests.o set_tests.c
 
 ${OBJECTDIR}/tests.o: tests.c
 	${MKDIR} -p ${OBJECTDIR}
