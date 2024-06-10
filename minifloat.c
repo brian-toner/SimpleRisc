@@ -178,39 +178,31 @@ void print_float_map(){
 }
 */
 
-unsigned char bin_search(float floatVal){
-    
-    unsigned char index = 63;
+unsigned char bin_search(float floatVal) {
     unsigned char left = 0;
     unsigned char right = 126;
-    float dl = 0;
-    float dr = 0;
-    while(right > left){
-
-        if(floatVal<=PFLOAT8MAP[index+1] && floatVal>=PFLOAT8MAP[index]){
-            dr = PFLOAT8MAP[index+1]-floatVal;
-            dl = floatVal-PFLOAT8MAP[index];
-            left = index;
-            right = index;
+    unsigned char mid;
+    
+    // Binary search for the closest value
+    while (left < right) {
+        mid = (left + right) / 2;
+        if (floatVal < PFLOAT8MAP[mid]) {
+            right = mid;
+        } else if (floatVal > PFLOAT8MAP[mid + 1]) {
+            left = mid + 1;
         } else {
-            if(PFLOAT8MAP[index]>=floatVal){
-                right = index;
-                index = left + (right-left)/2;
-            } else {
-                left = index;
-                index = left + (right-left)/2;
-            }
-
+            break;
         }
-        
     }
     
-    if(dl>dr){
-        index++;
+    // Determine the closest value
+    float dl = floatVal - PFLOAT8MAP[mid];
+    float dr = PFLOAT8MAP[mid + 1] - floatVal;
+    if (dr < dl) {
+        mid++;
     }
     
-    return index;
-    
+    return mid;
 }
 
 unsigned char float_to_mini(float floatVal){
