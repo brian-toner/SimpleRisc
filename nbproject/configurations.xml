@@ -38,6 +38,7 @@
       <logicalFolder name="f2" displayName="tests" projectFiles="true">
         <itemPath>fath_tests.c</itemPath>
         <itemPath>iath_tests.c</itemPath>
+        <itemPath>inc_tests.c</itemPath>
         <itemPath>set_tests.c</itemPath>
         <itemPath>tests.c</itemPath>
       </logicalFolder>
@@ -109,6 +110,8 @@
       <item path="iath_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="inc_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inc_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="instructions.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -193,6 +196,8 @@
       <item path="iath_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="inc_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inc_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="instructions.c" ex="false" tool="0" flavor2="0">
       </item>

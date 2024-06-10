@@ -132,85 +132,44 @@ void cpu_mod(Risc256* aCPUPt) {
 }
 
 
-// 0x15
+// 15 - SETB
 void cpu_setb(Risc256* aCPUPt) {
-    CPUType bitPosition = *aCPUPt->vRB;
-    *aCPUPt->vRA |= (ONEBIT << bitPosition);
+    *aCPUPt->vRA |= (1 << *aCPUPt->vRB);
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~Z_S_MASK) | (*aCPUPt->vRA == 0 ? Z_SET : 0) | ((*aCPUPt->vRA & SIGNBIT) ? S_SET : 0);
 }
 
-// 0x16
+// 16 - CLRB
 void cpu_clrb(Risc256* aCPUPt) {
-    CPUType bitPosition = *aCPUPt->vRB;
-    *aCPUPt->vRA &= (ONEBIT << bitPosition);
+    *aCPUPt->vRA &= ~(1 << *aCPUPt->vRB);
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~Z_S_MASK) | (*aCPUPt->vRA == 0 ? Z_SET : 0) | ((*aCPUPt->vRA & SIGNBIT) ? S_SET : 0);
 }
 
-// 0x17
+
+// 17 - NOT
 void cpu_not(Risc256* aCPUPt) {
-    // Perform bitwise NOT operation on the value in RA
-    CPUType lRet = ~(*aCPUPt->vRA);
-    *aCPUPt->vRA = lRet;
-
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-    // The Not operation doesn't generate overflow, carry, infinity or undefined results
+    *aCPUPt->vRA = ~(*aCPUPt->vRA);
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~Z_S_MASK) | (*aCPUPt->vRA == 0 ? Z_SET : 0) | ((*aCPUPt->vRA & SIGNBIT) ? S_SET : 0);
 }
 
-// 0x18
-void cpu_and(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    CPUType lRet = lVal1&lVal2;
-    
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
-
+// 18 - AND
+void cpu_and(Risc256* aCPUPt) {
+    *aCPUPt->vRA &= *aCPUPt->vRB;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~Z_S_MASK) | (*aCPUPt->vRA == 0 ? Z_SET : 0) | ((*aCPUPt->vRA & SIGNBIT) ? S_SET : 0);
 }
 
-// 0x19
-void cpu_or(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    CPUType lRet = lVal1&lVal2;
-    
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
+// 19 - OR
+void cpu_or(Risc256* aCPUPt) {
+    *aCPUPt->vRA |= *aCPUPt->vRB;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~Z_S_MASK) | (*aCPUPt->vRA == 0 ? Z_SET : 0) | ((*aCPUPt->vRA & SIGNBIT) ? S_SET : 0);
 }
+
 
 // 0x1A
-void cpu_xor(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    CPUType lRet = lVal1&lVal2;
-    
-    // Resetting relevant flags initially
-    *aCPUPt->vRS &= CZOSNU_MASK;
-
-    // Setting flags based on the result
-    *aCPUPt->vRS |= ((lRet == 0) ? Z_SET : 0)          // Zero Flag
-                 |  (((lRet & SIGNBIT) != 0) ? S_SET : 0); // Sign Flag
-
+void cpu_xor(Risc256* aCPUPt) {
+    *aCPUPt->vRA ^= *aCPUPt->vRB;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~Z_S_MASK) | (*aCPUPt->vRA == 0 ? Z_SET : 0) | ((*aCPUPt->vRA & SIGNBIT) ? S_SET : 0);
 }
+
 
 // 0x1B
 void cpu_shl(Risc256* aCPUPt) {
@@ -252,101 +211,14 @@ void cpu_shr(Risc256* aCPUPt) {
     *aCPUPt->vRA = lVal;
 }
 
-
 // 0x1D - ADC: Add with Carry
-void cpu_addc(Risc256* aCPUPt){
-        
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    bool lBSign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+lVal2;
-    
-    
-    //Add with carry if we want to implement that
-    if( (*aCPUPt->vRS*C_SET)!=0 ){
-        lRet+=1;
-    }
-    *aCPUPt->vRA = lRet;
-
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(
-                Z_SET
-            ):(
-                0
-            )) | 
-            
-        ((lSign)?(
-                S_SET
-            ):(
-                0
-            )) |
-            
-        ((lASign == lBSign && lSign != lASign)?(
-                O_SET
-            ):(
-                0
-            )) |
-            
-        ((lVal2 > lRet)?(
-                C_SET
-            ):(
-                0
-            )));
-
-    *aCPUPt->vRS = lRFPt;
-            
-}
-
-// 0x1E - SBB: Subtract with Borrow
-void cpu_subb(Risc256* aCPUPt){
-    
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
-    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-    bool lBSign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1-lVal2;
-    
-    
-    //Add with carry if we want to implement that
-    if( (*aCPUPt->vRS*C_SET)!=0 ){
-        lRet-=1;
-    }
-    *aCPUPt->vRA = lRet;
-
-    bool lSign = (lRet & SIGNBIT)!=0;
-
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
-    lRFPt |= 
-        (((lRet==0)?(Z_SET):(0)) | 
-        ((lSign)?(S_SET):(0)) |
-        ((lASign == lBSign && lSign != lASign)?(O_SET):(0)) |
-        ((lVal2 > lRet)?(C_SET):(0)));
-
-    *aCPUPt->vRS = lRFPt;
-    
-
-}
-
-
 void cpu_adc(Risc256* aCPUPt) {
     CPUType result = *aCPUPt->vRA + *aCPUPt->vRB + ((*aCPUPt->vRS & C_SET) ? 1 : 0);
     *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((result < *aCPUPt->vRA) ? C_SET : 0);
     *aCPUPt->vRA = result;
 }
 
-
+//// 0x1E - SBB: Subtract with Borrow
 void cpu_sbb(Risc256* aCPUPt) {
     CPUType borrow = (*aCPUPt->vRS & C_SET) ? 1 : 0;
     CPUType result = *aCPUPt->vRA - *aCPUPt->vRB - borrow;

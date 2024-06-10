@@ -49,6 +49,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/iath_instructions.o \
 	${OBJECTDIR}/iath_tests.o \
 	${OBJECTDIR}/inc_instructions.o \
+	${OBJECTDIR}/inc_tests.o \
 	${OBJECTDIR}/instructions.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/minifloat.o \
@@ -155,6 +156,11 @@ ${OBJECTDIR}/inc_instructions.o: inc_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inc_instructions.o inc_instructions.c
+
+${OBJECTDIR}/inc_tests.o: inc_tests.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inc_tests.o inc_tests.c
 
 ${OBJECTDIR}/instructions.o: instructions.c
 	${MKDIR} -p ${OBJECTDIR}

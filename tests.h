@@ -73,6 +73,30 @@ int test_cpu_sub_basic();
 int test_cpu_sub_zero_flag();
 int test_cpu_sub_carry_flag();
 int test_cpu_sub_overflow_flag();
+int test_cpu_mul_basic();
+int test_cpu_div_basic();
+int test_cpu_div_by_zero();
+int test_cpu_mod_basic();
+int test_cpu_mod_by_zero();
+int test_cpu_setb_basic();
+int test_cpu_clrb_basic();
+int test_cpu_not_basic();
+int test_cpu_and_basic();
+int test_cpu_or_basic();
+int test_cpu_xor_basic();
+int test_cpu_shl_basic();
+int test_cpu_shr_basic();
+int test_cpu_addc_basic();
+int test_cpu_subb_basic();
+int test_cpu_twos_basic();
+int test_cpu_add_basic();
+int test_cpu_add_zero_flag();
+int test_cpu_add_carry_flag();
+int test_cpu_add_overflow_flag();
+int test_cpu_sub_basic();
+int test_cpu_sub_zero_flag();
+int test_cpu_sub_carry_flag();
+int test_cpu_sub_overflow_flag();
 int test_cpu_qadd();
 int test_cpu_qsub();
 int test_cpu_qmul();
@@ -106,5 +130,13 @@ int test_cpu_qacos();
 int test_cpu_qatan2();
 int test_cpu_stf_fts();
 int test_cpu_fti_itf();
+
+
+int test_cpu_inc_ra();
+int test_cpu_inc_rb_zero_flag();
+int test_cpu_inc_rc_carry_flag();
+int test_cpu_inc_rd_ws();
+int test_cpu_inc_re_ds();
+    
 #endif /* TESTS_H */
 

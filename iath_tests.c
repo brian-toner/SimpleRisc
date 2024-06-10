@@ -456,3 +456,285 @@ int test_cpu_qshr(){
     
     return passed;
 }
+
+/////////
+
+// Test for multiplication
+int test_cpu_mul_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 6;
+    *lCPU->vRB = 7;
+
+    cpu_mul(lCPU);
+    int passed = (*lCPU->vRA == 42) && ((*lCPU->vRS & CZOS_MASK) == 0);
+
+    print_int_result("0x12", "mul_basic", *lCPU->vRA, 42, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for division
+int test_cpu_div_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 100;
+    *lCPU->vRB = 4;
+
+    cpu_div(lCPU);
+    int passed = (*lCPU->vRA == 25) && ((*lCPU->vRS & CZOS_MASK) == 0);
+
+    print_int_result("0x13", "div_basic", *lCPU->vRA, 25, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for division by zero
+int test_cpu_div_by_zero() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 100;
+    *lCPU->vRB = 0;
+
+    cpu_div(lCPU);
+    CPUType actualFlags = *lCPU->vRS & U_SET;
+    CPUType expectedFlags = U_SET; // Undefined flag expected
+    int passed = (actualFlags == expectedFlags);
+
+    print_flag_result("0x13", "div_by_zero", actualFlags, expectedFlags, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for modulus
+int test_cpu_mod_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 100;
+    *lCPU->vRB = 30;
+
+    cpu_mod(lCPU);
+    int passed = (*lCPU->vRA == 10) && ((*lCPU->vRS & CZOS_MASK) == 0);
+
+    print_int_result("0x14", "mod_basic", *lCPU->vRA, 10, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for modulus by zero
+int test_cpu_mod_by_zero() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 100;
+    *lCPU->vRB = 0;
+
+    cpu_mod(lCPU);
+    CPUType actualFlags = *lCPU->vRS & U_SET;
+    CPUType expectedFlags = U_SET; // Undefined flag expected
+    int passed = (actualFlags == expectedFlags);
+
+    print_flag_result("0x14", "mod_by_zero", actualFlags, expectedFlags, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for bit set
+int test_cpu_setb_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 0;
+    *lCPU->vRB = 3; // Set the 3rd bit
+
+    cpu_setb(lCPU);
+    int passed = (*lCPU->vRA == 8); // 8 is 2^3
+
+    print_int_result("0x15", "setb_basic", *lCPU->vRA, 8, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for bit clear
+int test_cpu_clrb_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 15; // 1111 in binary
+    *lCPU->vRB = 2; // Clear the 2nd bit
+
+    cpu_clrb(lCPU);
+    int passed = (*lCPU->vRA == 0b1011); // 1011 in binary
+
+    print_int_result("0x16", "clrb_basic", *lCPU->vRA, 0b1011, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for bitwise NOT
+int test_cpu_not_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 0xF0; // Some arbitrary value
+
+    cpu_not(lCPU);
+    int passed = (*lCPU->vRA == 0x0F); // Complement of 0xF0
+
+    print_int_result("0x17", "not_basic", *lCPU->vRA, 0x0F, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for bitwise AND
+int test_cpu_and_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 0xF0;
+    *lCPU->vRB = 0x0F;
+
+    cpu_and(lCPU);
+    int passed = (*lCPU->vRA == 0x00);
+
+    print_int_result("0x18", "and_basic", *lCPU->vRA, 0x00, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for bitwise OR
+int test_cpu_or_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 0xF0;
+    *lCPU->vRB = 0x0F;
+
+    cpu_or(lCPU);
+    int passed = (*lCPU->vRA == 0xFF);
+
+    print_int_result("0x19", "or_basic", *lCPU->vRA, 0xFF, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for bitwise XOR
+int test_cpu_xor_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 0xF0;
+    *lCPU->vRB = 0x0F;
+
+    cpu_xor(lCPU);
+    int passed = (*lCPU->vRA == 0xFF);
+
+    print_int_result("0x1A", "xor_basic", *lCPU->vRA, 0xFF, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for shift left
+int test_cpu_shl_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 1;
+    *lCPU->vRB = 3; // Shift left by 3 bits
+
+    cpu_shl(lCPU);
+    int passed = (*lCPU->vRA == 8); // 1 << 3 is 8
+
+    print_int_result("0x1B", "shl_basic", *lCPU->vRA, 8, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for shift right
+int test_cpu_shr_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 8;
+    *lCPU->vRB = 3; // Shift right by 3 bits
+
+    cpu_shr(lCPU);
+    int passed = (*lCPU->vRA == 1); // 8 >> 3 is 1
+
+    print_int_result("0x1C", "shr_basic", *lCPU->vRA, 1, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for add with carry
+// Test for add with carry
+int test_cpu_addc_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 100;
+    *lCPU->vRB = 55;
+    *lCPU->vRS = C_SET; // Set carry flag
+
+    cpu_adc(lCPU);
+    int passed = (*lCPU->vRA == 156) && ((*lCPU->vRS & (C_SET | Z_SET | O_SET)) == 0);
+
+    print_int_result("0x1D", "addc_basic", *lCPU->vRA, 156, passed);
+    print_int_result("0x1D", "addc_basic (flags)", *lCPU->vRS, (*lCPU->vRS & (C_SET | Z_SET | S_SET | O_SET)), passed);
+    free(lCPU);
+    return passed;
+}
+
+
+// Test for subtract with borrow
+int test_cpu_subb_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 100;
+    *lCPU->vRB = 55;
+    *lCPU->vRS = C_SET; // Set carry flag
+
+    cpu_sbb(lCPU);
+    int passed = (*lCPU->vRA == 44) && ((*lCPU->vRS & CZOS_MASK) == 0);
+
+    print_int_result("0x1E", "subb_basic", *lCPU->vRA, 44, passed);
+    print_int_result("0x1E", "subb_basic (flags)", *lCPU->vRS, *lCPU->vRS&CZOS_MASK, passed);
+    free(lCPU);
+    return passed;
+}
+
+// Test for two's complement
+int test_cpu_twos_basic() {
+    int memsize = 256;
+    Risc256* lCPU = cpu_init(memsize);
+    if (!lCPU) return 0;
+
+    *lCPU->vRA = 50;
+
+    cpu_twos(lCPU);
+    int passed = (*lCPU->vRA == (CPUType)-50); // Two's complement of 50
+
+    print_int_result("0x1F", "twos_basic", *lCPU->vRA, (CPUType)-50, passed);
+    free(lCPU);
+    return passed;
+}
