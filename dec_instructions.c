@@ -15,87 +15,100 @@ void set_flags_decrement(Risc256* aCPUPt, CPUType value) {
 }
 
 void cpu_dec_ra(Risc256* aCPUPt) {
-    *aCPUPt->vRA -= 1;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRA);
+    CPUType result = *aCPUPt->vRA - 1;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((1 > *aCPUPt->vRA) ? C_SET : 0);
+    *aCPUPt->vRA = result;
 }
 
 void cpu_dec_rb(Risc256* aCPUPt) {
-    *aCPUPt->vRB -= 1;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRB);
+    CPUType result = *aCPUPt->vRB - 1;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((1 > *aCPUPt->vRB) ? C_SET : 0);
+    *aCPUPt->vRB = result;
 }
 
 void cpu_dec_rc(Risc256* aCPUPt) {
-    *aCPUPt->vRC -= 1;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRC);
+    CPUType result = *aCPUPt->vRC - 1;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((1 > *aCPUPt->vRC) ? C_SET : 0);
+    *aCPUPt->vRC = result;
 }
 
 void cpu_dec_rd_ws(Risc256* aCPUPt) {
-    *aCPUPt->vRD -= WORDSIZE;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRD);
+    CPUType result = *aCPUPt->vRD - WORDSIZE;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((WORDSIZE > *aCPUPt->vRD) ? C_SET : 0);
+    *aCPUPt->vRD = result;
 }
 
 void cpu_dec_rd_ds(Risc256* aCPUPt) {
-    *aCPUPt->vRD -= ADDRSIZE;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRD);
+    CPUType result = *aCPUPt->vRD - ADDRSIZE;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((ADDRSIZE > *aCPUPt->vRD) ? C_SET : 0);
+    *aCPUPt->vRD = result;
 }
 
 void cpu_dec_re_ws(Risc256* aCPUPt) {
-    *aCPUPt->vRE -= WORDSIZE;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRE);
+    CPUType result = *aCPUPt->vRE - WORDSIZE;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((WORDSIZE > *aCPUPt->vRE) ? C_SET : 0);
+    *aCPUPt->vRE = result;
 }
 
 void cpu_dec_re_ds(Risc256* aCPUPt) {
-    *aCPUPt->vRE -= ADDRSIZE;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRE);
+    CPUType result = *aCPUPt->vRE - ADDRSIZE;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((ADDRSIZE > *aCPUPt->vRE) ? C_SET : 0);
+    *aCPUPt->vRE = result;
 }
 
 void cpu_dec_ri(Risc256* aCPUPt) {
-    *aCPUPt->vRI -= 1;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRI);
+    CPUType result = *aCPUPt->vRI - 1;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((1 > *aCPUPt->vRI) ? C_SET : 0);
+    *aCPUPt->vRI = result;
 }
 
 void cpu_dec_ra_ri(Risc256* aCPUPt) {
-    *aCPUPt->vRA -= *aCPUPt->vRI;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRA);
+    CPUType result = *aCPUPt->vRA - *aCPUPt->vRI;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((*aCPUPt->vRI > *aCPUPt->vRA) ? C_SET : 0);
+    *aCPUPt->vRA = result;
 }
 
 void cpu_dec_rb_ri(Risc256* aCPUPt) {
-    *aCPUPt->vRB -= *aCPUPt->vRI;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRB);
+    CPUType result = *aCPUPt->vRB - *aCPUPt->vRI;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((*aCPUPt->vRI > *aCPUPt->vRB) ? C_SET : 0);
+    *aCPUPt->vRB = result;
 }
 
 void cpu_dec_rc_ri(Risc256* aCPUPt) {
-    *aCPUPt->vRC -= *aCPUPt->vRI;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRC);
+    CPUType result = *aCPUPt->vRC - *aCPUPt->vRI;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((*aCPUPt->vRI > *aCPUPt->vRC) ? C_SET : 0);
+    *aCPUPt->vRC = result;
 }
 
 void cpu_dec_rd_ri(Risc256* aCPUPt) {
-    *aCPUPt->vRD -= *aCPUPt->vRI;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRD);
+    CPUType result = *aCPUPt->vRD - *aCPUPt->vRI;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((*aCPUPt->vRI > *aCPUPt->vRD) ? C_SET : 0);
+    *aCPUPt->vRD = result;
 }
 
 void cpu_dec_re_ri(Risc256* aCPUPt) {
-    *aCPUPt->vRE -= *aCPUPt->vRI;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRE);
+    CPUType result = *aCPUPt->vRE - *aCPUPt->vRI;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((*aCPUPt->vRI > *aCPUPt->vRE) ? C_SET : 0);
+    *aCPUPt->vRE = result;
 }
 
 void cpu_dec_sp_ws(Risc256* aCPUPt) {
     if ((*aCPUPt->vRF & P0_SET) == 0 && (*aCPUPt->vRF & P1_SET) == 0) {
-        *aCPUPt->vSP -= WORDSIZE;
-        set_flags_decrement(aCPUPt, *aCPUPt->vSP);
+        CPUType result = *aCPUPt->vSP - WORDSIZE;
+        *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((WORDSIZE > *aCPUPt->vSP) ? C_SET : 0);
+        *aCPUPt->vSP = result;
     } else {
         *aCPUPt->vRF |= (E_SET | A_SET);
     }
 }
 
 void cpu_dec_tp_ws(Risc256* aCPUPt) {
-    *aCPUPt->vTP -= WORDSIZE;
-    set_flags_decrement(aCPUPt, *aCPUPt->vTP);
+    CPUType result = *aCPUPt->vTP - WORDSIZE;
+    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((WORDSIZE > *aCPUPt->vTP) ? C_SET : 0);
+    *aCPUPt->vTP = result;
 }
 
 void cpu_dec_rd_re_ws(Risc256* aCPUPt) {
     *aCPUPt->vRD -= WORDSIZE;
     *aCPUPt->vRE -= WORDSIZE;
-    set_flags_decrement(aCPUPt, *aCPUPt->vRD); // Assuming we set flags based on RD
-    set_flags_decrement(aCPUPt, *aCPUPt->vRE); // Ensure flags reflect both RD and RE
 }

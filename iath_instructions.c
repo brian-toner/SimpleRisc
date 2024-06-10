@@ -4,54 +4,38 @@
 // 0x10
 void cpu_add(Risc256* aCPUPt){
         
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
-
     bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
     bool lBSign = (*aCPUPt->vRB & SIGNBIT)!=0;
-
-    CPUType lRet = lVal1+lVal2;
-    *aCPUPt->vRA = lRet;
-    
+    CPUType lRet = *aCPUPt->vRA+*aCPUPt->vRB;
     bool lSign = (lRet & SIGNBIT)!=0;
 
-    /*Set flags*/
-    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
-
     // Set the flags based on the result
-    lRFPt |= 
+    *aCPUPt->vRS  =
+        (*aCPUPt->vRS&CZOS_MASK) |
         ((lRet == 0) ? Z_SET : 0) | // Zero flag
         (lSign ? S_SET : 0) | // Sign flag
         ((lASign == lBSign && lSign != lASign) ? O_SET : 0) | // Overflow flag
-        ((lRet < lVal1) ? C_SET : 0); // Carry flag (unsigned overflow)
+        ((lRet < *aCPUPt->vRA) ? C_SET : 0); // Carry flag (unsigned overflow)
 
-    *aCPUPt->vRS = lRFPt;
-            
+    *aCPUPt->vRA = lRet;
 }
 
 //0x11
 void cpu_sub(Risc256* aCPUPt) {
-    CPUType lVal1 = *aCPUPt->vRA;
-    CPUType lVal2 = *aCPUPt->vRB;
 
-    bool lASign = (lVal1 & SIGNBIT) != 0;
-    bool lBSign = (lVal2 & SIGNBIT) != 0;
-
-    CPUType lRet = lVal1 - lVal2;
-    *aCPUPt->vRA = lRet;
-
+    bool lASign = (*aCPUPt->vRA & SIGNBIT) != 0;
+    bool lBSign = (*aCPUPt->vRB & SIGNBIT) != 0;
+    CPUType lRet = *aCPUPt->vRA - *aCPUPt->vRB;
     bool lSign = (lRet & SIGNBIT) != 0;
 
-    /* Set flags */
-    CPUType lRFPt = *aCPUPt->vRS & CZOS_MASK;
-
-    lRFPt |= 
+    *aCPUPt->vRS =
+        (*aCPUPt->vRS & CZOS_MASK) |
         ((lRet == 0 ? Z_SET : 0) | 
-         (lSign ? S_SET : 0) |
-         (lASign != lBSign && lSign != lASign ? O_SET : 0) |  // Adjusted overflow condition
-         (lVal1 < lVal2 ? C_SET : 0));  // Correct carry flag calculation
+        (lSign ? S_SET : 0) |
+        (lASign != lBSign && lSign != lASign ? O_SET : 0) |  // Adjusted overflow condition
+        (*aCPUPt->vRA < *aCPUPt->vRB ? C_SET : 0));  // Correct carry flag calculation
 
-    *aCPUPt->vRS = lRFPt;
+    *aCPUPt->vRA = lRet;
 }
 
 

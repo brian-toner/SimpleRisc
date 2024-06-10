@@ -42,7 +42,7 @@ int test_cpu_inc_rc_carry_flag() {
     cpu_inc_rc(lCPU);
     
     int passed = (*lCPU->vRC == 0x00) && ((*lCPU->vRS & Z_SET) != 0) && ((*lCPU->vRS & C_SET) != 0);
-    print_int_result("0x32", "inc_rc_carry_flag", *lCPU->vRC, 0x00, passed);
+    print_int_result("0x32", "inc_rc_carry_flag", *lCPU->vRS, Z_SET|C_SET, passed);
     
     free(lCPU);
     return passed;
@@ -57,8 +57,9 @@ int test_cpu_inc_rd_ws() {
     *lCPU->vRD = 0xFE; // Initial value close to overflow
     cpu_inc_rd_ws(lCPU);
     
-    int passed = (*lCPU->vRD == 0xFE + WORDSIZE) && ((*lCPU->vRS & Z_SET) == 0) && ((*lCPU->vRS & S_SET) == 0);
+    int passed = (*lCPU->vRD == 0xFE + WORDSIZE) && ((*lCPU->vRS & S_SET) != 0);
     print_int_result("0x33", "inc_rd_ws", *lCPU->vRD, 0xFE + WORDSIZE, passed);
+    print_int_result("0x33", "inc_rd_ws (flags)", *lCPU->vRS, S_SET, passed);
     
     free(lCPU);
     return passed;
@@ -73,8 +74,11 @@ int test_cpu_inc_re_ds() {
     *lCPU->vRE = 0xFE; // Initial value close to overflow
     cpu_inc_re_ds(lCPU);
     
-    int passed = (*lCPU->vRE == 0xFE + ADDRSIZE) && ((*lCPU->vRS & Z_SET) == 0) && ((*lCPU->vRS & S_SET) == 0);
-    print_int_result("0x36", "inc_re_ds", *lCPU->vRE, 0xFE + ADDRSIZE, passed);
+    CPUType expected = 0xFE + ADDRSIZE;
+    
+    int passed = (*lCPU->vRE == expected ) && ((*lCPU->vRS & Z_SET) != 0) && ((*lCPU->vRS & C_SET) != 0);
+    print_int_result("0x36", "inc_re_ds", *lCPU->vRE, expected, passed);
+    print_int_result("0x36", "inc_re_ds (flags)", *lCPU->vRS, Z_SET|C_SET + ADDRSIZE, passed);
     
     free(lCPU);
     return passed;
