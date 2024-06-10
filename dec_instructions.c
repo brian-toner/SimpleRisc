@@ -1,29 +1,41 @@
 #include "instructions.h"
 
-// Helper function to set flags for decrement operations
-void set_flags_decrement(Risc256* aCPUPt, CPUType value) {
-    *aCPUPt->vRS &= ~(C_SET | Z_SET | S_SET); // Clear relevant flags
-    if (value == 0) {
-        *aCPUPt->vRS |= Z_SET; // Set Zero flag
-    }
-    if (value & SIGNBIT) {
-        *aCPUPt->vRS |= S_SET; // Set Sign flag
-    }
-    if (value > value + 1) {
-        *aCPUPt->vRS |= C_SET; // Set Carry flag (for underflow)
-    }
+#define CPU_DEC_REG_TYPE(cpu, reg, regPtr, SIZE, TYPE) \
+    TYPE reg = *(cpu->regPtr);                         \
+    TYPE result = reg - (SIZE);                        \
+                                                       \
+    CPUType flags = *(cpu->vRS) & CZOS_MASK;           \
+                                                       \
+    flags |= (result == 0) * Z_SET;                    \
+    flags |= ((result & SIGNBIT) != 0) * S_SET;        \
+    flags |= ((reg & SIGNBIT) && !(result & SIGNBIT)) * O_SET; \
+    flags |= ((SIZE) > reg) * C_SET;                   \
+                                                       \
+    *(cpu->vRS) = flags;                               \
+    *(cpu->regPtr) = result;
+
+#define CPU_DEC_REG(cpu, reg, regPtr) CPU_DEC_REG_TYPE(cpu, reg, regPtr, 1, CPUType)
+#define CPU_DEC_PTR_REG(cpu, reg, regPtr, SIZE) CPU_DEC_REG_TYPE(cpu, reg, regPtr, SIZE, CPUPtrType)
+
+
+void cpu_dec_ra(Risc256* cpu) {
+    CPU_DEC_REG(cpu, ra, vRA);
 }
 
-void cpu_dec_ra(Risc256* aCPUPt) {
-    CPUType result = *aCPUPt->vRA - 1;
-    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((1 > *aCPUPt->vRA) ? C_SET : 0);
-    *aCPUPt->vRA = result;
-}
+void cpu_dec_rb(Risc256* cpu) {
+    CPUType rb = *cpu->vRB;
+    CPUType result = rb - 1;
 
-void cpu_dec_rb(Risc256* aCPUPt) {
-    CPUType result = *aCPUPt->vRB - 1;
-    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((1 > *aCPUPt->vRB) ? C_SET : 0);
-    *aCPUPt->vRB = result;
+    // Calculate flags using bitwise operations to avoid conditionals
+    CPUType flags = *cpu->vRS & CZOS_MASK;
+
+    flags |= (result == 0) * Z_SET;
+    flags |= ((result & SIGNBIT) != 0) * S_SET;
+    flags |= ((rb & SIGNBIT) && !(result & SIGNBIT)) * O_SET;
+    flags |= (rb == 0) * C_SET;
+
+    *cpu->vRS = flags;
+    *cpu->vRB = result;
 }
 
 void cpu_dec_rc(Risc256* aCPUPt) {
@@ -32,10 +44,9 @@ void cpu_dec_rc(Risc256* aCPUPt) {
     *aCPUPt->vRC = result;
 }
 
-void cpu_dec_rd_ws(Risc256* aCPUPt) {
-    CPUType result = *aCPUPt->vRD - WORDSIZE;
-    *aCPUPt->vRS = (*aCPUPt->vRS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((WORDSIZE > *aCPUPt->vRD) ? C_SET : 0);
-    *aCPUPt->vRD = result;
+
+void cpu_dec_rd_ws(Risc256* cpu) {
+    CPU_DEC_PTR_REG(cpu, rd, vRD, WORDSIZE);
 }
 
 void cpu_dec_rd_ds(Risc256* aCPUPt) {

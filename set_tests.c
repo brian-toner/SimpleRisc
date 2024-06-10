@@ -19,7 +19,7 @@ int test_cpu_set_FFFF() {
     
     //print_mem(lCPU->vMemByte, memsize);
     
-    print_uint_result("0x00", "set_0f0f0f0f", *lCPU->vRR, 65535, passed);
+    print_uint_result("0x00", "set_0f0f0f0f", *lCPU->vRR, 65535, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -46,7 +46,7 @@ int test_cpu_set_ABCD() {
     
     //print_mem(lCPU->vMemByte, memsize);
     
-    print_uint_result("0x00", "set_0a0b0c0d", *lCPU->vRR, 0xABCD, passed);
+    print_uint_result("0x00", "set_0a0b0c0d", *lCPU->vRR, 0xABCD, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -76,7 +76,7 @@ int test_cpu_set_BCDE() {
     
     //print_mem(lCPU->vMemByte, memsize);
     
-    print_uint_result("0x00", "set_0a0b0c0d0e", *lCPU->vRR, 0xBCDE, passed);
+    print_uint_result("0x00", "set_0a0b0c0d0e", *lCPU->vRR, 0xBCDE, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -97,7 +97,7 @@ int test_cpu_set_alt_BCDE() {
     
     //print_mem(lCPU->vMemByte, memsize);
     
-    print_uint_result("0x00", "set_0a0b0c0d0e", *lCPU->vRR, 0xBCDE, passed);
+    print_uint_result("0x00", "set_0a0b0c0d0e", *lCPU->vRR, 0xBCDE, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -114,7 +114,7 @@ int test_cpu_set_0123() {
     
     int passed = *lCPU->vRR == 0x0123;
     
-    print_uint_result("0x00", "set_010203", *lCPU->vRR, 0x0123, passed);
+    print_uint_result("0x00", "set_010203", *lCPU->vRR, 0x0123, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -131,7 +131,7 @@ int test_cpu_set_89AB() {
     
     int passed = *lCPU->vRR == 0x89AB;
     
-    print_uint_result("0x00", "set_08090a0b", *lCPU->vRR, 0x89AB, passed);
+    print_uint_result("0x00", "set_08090a0b", *lCPU->vRR, 0x89AB, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -148,7 +148,7 @@ int test_cpu_set_CDEF() {
     
     int passed = *lCPU->vRR == 0xCDEF;
     
-    print_uint_result("0x00", "set_0c0d0e0f", *lCPU->vRR, 0xCDEF, passed);
+    print_uint_result("0x00", "set_0c0d0e0f", *lCPU->vRR, 0xCDEF, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -165,7 +165,7 @@ int test_cpu_set_0A0B() {
     
     int passed = *lCPU->vRR == 0x0A0B;
     
-    print_uint_result("0x00", "set_000a000b", *lCPU->vRR, 0x0A0B, passed);
+    print_uint_result("0x00", "set_000a000b", *lCPU->vRR, 0x0A0B, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -179,7 +179,7 @@ int test_cpu_set_0() {
     
     int passed = *lCPU->vRR == 0x0;
     
-    print_uint_result("0x0", "set_0", *lCPU->vRR, 0x0, passed);
+    print_uint_result("0x0", "set_0", *lCPU->vRR, 0x0, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -193,7 +193,7 @@ int test_cpu_set_1() {
     
     int passed = *lCPU->vRR == 0x1;
     
-    print_uint_result("0x1", "set_1", *lCPU->vRR, 0x1, passed);
+    print_uint_result("0x1", "set_1", *lCPU->vRR, 0x1, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -207,7 +207,7 @@ int test_cpu_set_2() {
     
     int passed = *lCPU->vRR == 0x2;
     
-    print_uint_result("0x2", "set_2", *lCPU->vRR, 0x2, passed);
+    print_uint_result("0x2", "set_2", *lCPU->vRR, 0x2, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -221,7 +221,7 @@ int test_cpu_set_3() {
     
     int passed = *lCPU->vRR == 0x3;
     
-    print_uint_result("0x3", "set_3", *lCPU->vRR, 0x3, passed);
+    print_uint_result("0x3", "set_3", *lCPU->vRR, 0x3, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -235,7 +235,7 @@ int test_cpu_set_4() {
     
     int passed = *lCPU->vRR == 0x4;
     
-    print_uint_result("0x4", "set_4", *lCPU->vRR, 0x4, passed);
+    print_uint_result("0x4", "set_4", *lCPU->vRR, 0x4, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -249,7 +249,7 @@ int test_cpu_set_5() {
     
     int passed = *lCPU->vRR == 0x5;
     
-    print_uint_result("0x5", "set_5", *lCPU->vRR, 0x5, passed);
+    print_uint_result("0x5", "set_5", *lCPU->vRR, 0x5, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -263,7 +263,7 @@ int test_cpu_set_6() {
     
     int passed = *lCPU->vRR == 0x6;
     
-    print_uint_result("0x6", "set_6", *lCPU->vRR, 0x6, passed);
+    print_uint_result("0x6", "set_6", *lCPU->vRR, 0x6, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -277,7 +277,7 @@ int test_cpu_set_7() {
     
     int passed = *lCPU->vRR == 0x7;
     
-    print_uint_result("0x7", "set_7", *lCPU->vRR, 0x7, passed);
+    print_uint_result("0x7", "set_7", *lCPU->vRR, 0x7, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -291,7 +291,7 @@ int test_cpu_set_8() {
     
     int passed = *lCPU->vRR == 0x8;
     
-    print_uint_result("0x8", "set_8", *lCPU->vRR, 0x8, passed);
+    print_uint_result("0x8", "set_8", *lCPU->vRR, 0x8, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -305,7 +305,7 @@ int test_cpu_set_9() {
     
     int passed = *lCPU->vRR == 0x9;
     
-    print_uint_result("0x9", "set_9", *lCPU->vRR, 0x9, passed);
+    print_uint_result("0x9", "set_9", *lCPU->vRR, 0x9, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -319,7 +319,7 @@ int test_cpu_set_A() {
     
     int passed = *lCPU->vRR == 0xA;
     
-    print_uint_result("0xA", "set_A", *lCPU->vRR, 0xA, passed);
+    print_uint_result("0xA", "set_A", *lCPU->vRR, 0xA, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -333,7 +333,7 @@ int test_cpu_set_B() {
     
     int passed = *lCPU->vRR == 0xB;
     
-    print_uint_result("0xB", "set_B", *lCPU->vRR, 0xB, passed);
+    print_uint_result("0xB", "set_B", *lCPU->vRR, 0xB, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -347,7 +347,7 @@ int test_cpu_set_C() {
     
     int passed = *lCPU->vRR == 0xC;
     
-    print_uint_result("0xC", "set_C", *lCPU->vRR, 0xC, passed);
+    print_uint_result("0xC", "set_C", *lCPU->vRR, 0xC, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -361,7 +361,7 @@ int test_cpu_set_D() {
     
     int passed = *lCPU->vRR == 0xD;
     
-    print_uint_result("0xD", "set_D", *lCPU->vRR, 0xD, passed);
+    print_uint_result("0xD", "set_D", *lCPU->vRR, 0xD, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -375,7 +375,7 @@ int test_cpu_set_E() {
     
     int passed = *lCPU->vRR == 0xE;
     
-    print_uint_result("0xE", "set_E", *lCPU->vRR, 0xE, passed);
+    print_uint_result("0xE", "set_E", *lCPU->vRR, 0xE, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -389,7 +389,7 @@ int test_cpu_set_F() {
     
     int passed = *lCPU->vRR == 0xF;
     
-    print_uint_result("0xF", "set_F", *lCPU->vRR, 0xF, passed);
+    print_uint_result("0xF", "set_F", *lCPU->vRR, 0xF, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }

@@ -23,7 +23,7 @@ int test_cpu_its(){
     int passed = strcmp((char*)lCPU->vREAddr, lBuff)==0;//*lCPU->vRA==res;
 
     //printf("%-20s | %-7s | %-7s | %-7d |\n", "test_cpu_its", (char*)lCPU->vREAddr, lBuff, passed);
-    print_string_result("0x0D", "its", (char*)lCPU->vREAddr, lBuff, passed); 
+    print_string_result("0x0D", "its", (char*)lCPU->vREAddr, lBuff, 0, 0, 0, 0, passed); 
     
     //printf("P: %d\n", passed);
     free(lCPU);
@@ -63,7 +63,7 @@ int test_cpu_sti_its(){
     int passed = strcmp((char*)lCPU->vREAddr, strval)==0;//*lCPU->vRA==res;
 
     //printf("%-20s | %-7s | %-7s | %-7d |\n", "test_cpu_sti_its", (char*)lCPU->vREAddr, strval, passed);
-    print_string_result("0x0E", "sti_its", (char*)lCPU->vREAddr, strval, passed); 
+    print_string_result("0x0E", "sti_its", (char*)lCPU->vREAddr, strval, 0, 0, 0, 0, passed); 
     
     //printf("P: %d\n", passed);
     free(lCPU);
@@ -86,7 +86,7 @@ int test_cpu_itf_fti(){
     int passed = (ret<=v1+3) && (ret>=v1-3);
     
     //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_itf_fti", ret, v1, passed);
-    print_int_result("0x0F", "itf_fti", ret, v1, passed); 
+    print_int_result("0x0F", "itf_fti", ret, v1, 0, 0, 0, 0, passed); 
     
     free(lCPU);
     
@@ -115,7 +115,7 @@ int test_cpu_qfpow(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 20);
-    print_float_result("0x10", "fpow", ret, res, passed);
+    print_float_result("0x10", "fpow", ret, res, 0, 0, 0, 0, passed);
 
     free(lCPU);
     
@@ -143,7 +143,7 @@ int test_cpu_qfadd(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x11", "fadd", ret, res, passed);
+    print_float_result("0x11", "fadd", ret, res, 0, 0, 0, 0, passed);
 
     free(lCPU);
     
@@ -170,7 +170,7 @@ int test_cpu_qfsub(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x12", "fsub", ret, res, passed);
+    print_float_result("0x12", "fsub", ret, res, 0, 0, 0, 0, passed);
 
     free(lCPU);
     
@@ -198,7 +198,7 @@ int test_cpu_qfmul(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 15);
-    print_float_result("0x13", "fmul", ret, res, passed);
+    print_float_result("0x13", "fmul", ret, res, 0, 0, 0, 0, passed);
 
     free(lCPU);
     
@@ -226,7 +226,7 @@ int test_cpu_qfdiv(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x14", "fdiv", ret, res, passed);
+    print_float_result("0x14", "fdiv", ret, res, 0, 0, 0, 0, passed);
 
     free(lCPU);
     
@@ -253,7 +253,7 @@ int test_cpu_qflogbn(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x15", "flogbn", ret, res, passed);
+    print_float_result("0x15", "flogbn", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -281,7 +281,7 @@ int test_cpu_qpi(){
     
     
     int passed = assert_float(ret, sign*M_PI, 3);
-    print_float_result("0x16", "pi", ret, sign*M_PI, passed);
+    print_float_result("0x16", "pi", ret, sign*M_PI, 0, 0, 0, 0, passed);
     //printf("%-20s | %-7.3f | %-7.3f | %-7d |\n", "test_cpu_qpi", ret, sign*M_PI, passed);
 
     free(lCPU);
@@ -302,7 +302,7 @@ int test_cpu_qe(){
     *lCPU->vRA = float_to_cputype(sign*M_E);
     //lCPU->vRB = float_to_cputype(4.0);
 
-    cpu_qpi(lCPU);
+    cpu_qe(lCPU);
     //cpu_qfmul(lCPU);
     //cpu_qfmul(lCPU);
     
@@ -310,7 +310,7 @@ int test_cpu_qe(){
     
     
     int passed = assert_float(ret, sign*M_E, 3);
-    print_float_result("0x17", "e", ret, sign*M_E, passed);
+    print_float_result("0x17", "e", ret, sign*M_E, 0, 0, 0, 0, passed);
     //printf("%-20s | %-7.3f | %-7.3f | %-7d |\n", "test_cpu_qpi", ret, sign*M_PI, passed);
 
     free(lCPU);
@@ -334,7 +334,7 @@ int test_cpu_qsin(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x18", "sin", ret, res, passed);
+    print_float_result("0x18", "sin", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -357,7 +357,7 @@ int test_cpu_qcos(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x19", "cos", ret, res, passed);
+    print_float_result("0x19", "cos", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -380,7 +380,7 @@ int test_cpu_qtan(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x1A", "tan", ret, res, passed);
+    print_float_result("0x1A", "tan", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -404,7 +404,7 @@ int test_cpu_qasin(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x1B", "asin", ret, res, passed);
+    print_float_result("0x1B", "asin", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -427,7 +427,7 @@ int test_cpu_qacos(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x1C", "acos", ret, res, passed);
+    print_float_result("0x1C", "acos", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -455,7 +455,7 @@ int test_cpu_qatan2(){
     
     
     int passed = assert_float(ret, res, 3);
-    print_float_result("0x1D", "atan2", ret, res, passed);
+    print_float_result("0x1D", "atan2", ret, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -491,7 +491,7 @@ int test_cpu_stf_fts(){
     int passed = strcmp((char*)lCPU->vREAddr, strval)==0;//*lCPU->vRA==res;
 
     //printf("%-20s | %-7s | %-7s | %-7d |\n", "test_cpu_stf_fts", (char*)lCPU->vREAddr, strval, passed);
-    print_string_result("0x1E", "test_cpu_stf_fts", (char*)lCPU->vREAddr, strval, passed);
+    print_string_result("0x1E", "test_cpu_stf_fts", (char*)lCPU->vREAddr, strval, 0, 0, 0, 0, passed);
     
     //printf("P: %d\n", passed);
     free(lCPU);
@@ -515,7 +515,7 @@ int test_cpu_fti_itf(){
     CPUFloat ret = cputype_to_float(*lCPU->vRA);
     int passed = (ret<=(int)v1+3) && (ret>=(int)v1-3);
     
-    print_float_result("0x1F", "test_cpu_fti_itf", ret, (int)v1, passed);
+    print_float_result("0x1F", "test_cpu_fti_itf", ret, (int)v1, 0, 0, 0, 0, passed);
     
     
     free(lCPU);

@@ -32,11 +32,14 @@ int assert_uint(CPUSWord actual, CPUSWord expected);
 void hl();
 void labels();
 void header(char* testName);
-int print_float_result(const char* opcode, const char* testName, CPUFloat actual, CPUFloat expected, int passed);
-int print_string_result(const char* opcode, const char* testName, char* actual, char* expected, int passed);
-int print_int_result(const char* opcode, const char* testName, CPUType* actual, CPUType* expected, int passed);
-int print_uint_result(const char* opcode, const char* testName, char* actual, char* expected, int passed);
+int print_int_result(const char* opcode, const char* testName, CPUType actual, CPUType expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed);
+int print_uint_result(const char* opcode, const char* testName, unsigned actual, unsigned expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed);
+int print_string_result(const char* opcode, const char* testName, const char* actual, const char* expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed);
+int print_float_result(const char* opcode, const char* testName, CPUFloat actual, CPUFloat expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed);
+
 int print_flag_result(const char* opcode, const char* testName, CPUType actual, CPUType expected, int passed);
+int check_value(CPUType actual, CPUType expected);
+int check_flags(Risc256* cpu, CPUType expected_flags);
 
 
 int test_cpu_set_FFFF();
@@ -137,6 +140,11 @@ int test_cpu_inc_rb_zero_flag();
 int test_cpu_inc_rc_carry_flag();
 int test_cpu_inc_rd_ws();
 int test_cpu_inc_re_ds();
-    
+
+int test_cpu_dec_ra_underflow();
+int test_cpu_dec_ra_positive();
+int test_cpu_dec_ra_negative();
+int test_cpu_dec_ra_zero();
+
 #endif /* TESTS_H */
 

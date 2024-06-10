@@ -14,41 +14,46 @@ int assert_uint(CPUSWord actual, CPUSWord expected){
 }
 
 void hl(){
-    printf("|-------|----------------------|---------|---------|---------|\n");
+    printf("|-------|----------------------------------------------------|---------|---------|---------|---------|---------|---------|---------|\n");
 }
 
 
 void labels(){
     hl();
-    printf("| %-5s | %-20s | %-7s | %-7s | %-7s |\n", "OP", "Test Name", "Act", "Exp", "Pass");
+    printf("| %-5s | %-50s | %-7s | %-7s | %-7s | %-7s | %-7s | %-7s | %-7s |\n", "OP", "Test Name", "Act", "Exp", "RSAct", "RSExp" , "RFAct", "RFExp", "Pass");
     hl();
 }
 
 void header(char* testName){
     hl();
-    printf("| %-5s | %-20s | %-7s | %-7s | %-7s |\n", "", testName, "", "", "");
+    printf("| %-5s | %-50s | %-7s | %-7s | %-7s | %-7s | %-7s | %-7s | %-7s |\n", "", testName, "", "", "", "", "", "", "");
     hl();
 }
 
 
-int print_float_result(const char* opcode, const char* testName, CPUFloat actual, CPUFloat expected, int passed){
-    printf("| %-5s | %-20s | %-7.2f | %-7.2f | %-7d |\n", opcode, testName, actual, expected, passed);
+// Print result functions for different data types
+int print_float_result(const char* opcode, const char* testName, CPUFloat actual, CPUFloat expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed) {
+    printf("| %-5s | %-50s | %-7.2f | %-7.2f | %-7X | %-7X | %-7X | %-7X | %-7s |\n", opcode, testName, actual, expected, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed ? "PASSED" : "FAILED");
+    return passed;
 }
 
-int print_string_result(const char* opcode, const char* testName, char* actual, char* expected, int passed){
-    printf("| %-5s | %-20s | %-7s | %-7s | %-7d |\n", opcode, testName, actual, expected, passed);
+int print_string_result(const char* opcode, const char* testName, const char* actual, const char* expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed) {
+    printf("| %-5s | %-50s | %-7s | %-7s | %-7X | %-7X | %-7X | %-7X | %-7s |\n", opcode, testName, actual, expected, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed ? "PASSED" : "FAILED");
+    return passed;
 }
 
-int print_int_result(const char* opcode, const char* testName, CPUType* actual, CPUType* expected, int passed){
-    printf("| %-5s | %-20s | %-7d | %-7d | %-7d |\n", opcode, testName, actual, expected, passed);
+int print_int_result(const char* opcode, const char* testName, CPUType actual, CPUType expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed) {
+    printf("| %-5s | %-50s | %-7d | %-7d | %-7X | %-7X | %-7X | %-7X | %-7s |\n", opcode, testName, actual, expected, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed ? "PASSED" : "FAILED");
+    return passed;
 }
 
-int print_uint_result(const char* opcode, const char* testName, char* actual, char* expected, int passed){
-    printf("| %-5s | %-20s | %-7u | %-7u | %-7d |\n", opcode, testName, actual, expected, passed);
+int print_uint_result(const char* opcode, const char* testName, unsigned actual, unsigned expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed) {
+    printf("| %-5s | %-50s | %-7u | %-7u | %-7X | %-7X | %-7X | %-7X | %-7s |\n", opcode, testName, actual, expected, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed ? "PASSED" : "FAILED");
+    return passed;
 }
 
 int print_flag_result(const char* opcode, const char* testName, CPUType actual, CPUType expected, int passed) {
-    printf("| %-5s | %-20s | %-7d | %-7d | %-7d |\n", opcode, testName, actual, expected, passed);
+    printf("| %-5s | %-50s | %-7d | %-7d | %-7d |\n", opcode, testName, actual, expected, passed);
 }
 
 
@@ -164,12 +169,28 @@ test_func increment_tests[] = {
     // Add other increment tests here...
 };
 
+test_func decrement_tests[] = {
+    test_cpu_dec_ra_zero,
+    test_cpu_dec_ra_negative,
+    test_cpu_dec_ra_positive,
+    test_cpu_dec_ra_underflow,
+    // Add more decrement tests here...
+};
+
 void run_tests(test_func* tests, int num_tests, float* count, float* total, const char* header_name) {
     header(header_name);
     for (int i = 0; i < num_tests; i++) {
         (*total)++;
         *count += tests[i]();
     }
+}
+
+int check_flags(Risc256* cpu, CPUType expected_flags) {
+    return (*cpu->vRS & expected_flags) == expected_flags;
+}
+
+int check_value(CPUType actual, CPUType expected) {
+    return actual == expected;
 }
 
 int main(int argc, char** argv) {
@@ -185,6 +206,7 @@ int main(int argc, char** argv) {
     run_tests(iath_tests, sizeof(iath_tests) / sizeof(iath_tests[0]), &count, &total, "iath");
     run_tests(fath_tests, sizeof(fath_tests) / sizeof(fath_tests[0]), &count, &total, "fath");
     run_tests(increment_tests, sizeof(increment_tests) / sizeof(increment_tests[0]), &count, &total, "inc");
+    run_tests(decrement_tests, sizeof(decrement_tests) / sizeof(decrement_tests[0]), &count, &total, "dec");
     hl();
 
     printf("Total Passed: %d (%3.2f%%)\n", (int)count, count / total * 100);
