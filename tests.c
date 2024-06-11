@@ -174,6 +174,10 @@ test_func decrement_tests[] = {
     test_cpu_dec_ra_negative,
     test_cpu_dec_ra_positive,
     test_cpu_dec_ra_underflow,
+    test_cpu_dec_rb_zero,
+    test_cpu_dec_rb_negative,
+    test_cpu_dec_rb_positive,
+    test_cpu_dec_rb_underflow,
     // Add more decrement tests here...
 };
 

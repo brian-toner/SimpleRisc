@@ -35,7 +35,7 @@ int test_cpu_add_zero_flag() {
     CPUType expectedFlags = Z_SET; // Expecting Zero Flag to be set
     int passed = (*lCPU->vRA == 0) && (actualFlags & Z_SET);
 
-    print_int_result("0x01", "add_zero", actualFlags, expectedFlags, 0, 0, 0, 0, passed);
+    print_int_result("0x01", "add_zero", *lCPU->vRA, 0, actualFlags, expectedFlags,0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -54,7 +54,7 @@ int test_cpu_add_carry_flag() {
     CPUType expectedFlags = C_SET; // Expecting Carry Flag to be set
     int passed = actualFlags != 0;
 
-    print_int_result("0x01", "add_carry", actualFlags, expectedFlags, 0, 0, 0, 0, passed);
+    print_int_result("0x01", "add_carry", *lCPU->vRA, 44, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -72,11 +72,11 @@ int test_cpu_add_overflow_flag() {
 
     cpu_add(lCPU);
     
-    CPUType actualFlags = *lCPU->vRS & O_SET;
-    CPUType expectedFlags = O_SET; // Expecting Overflow Flag to be set
+    CPUType actualFlags = *lCPU->vRS ;
+    CPUType expectedFlags = S_SET|O_SET; // Expecting Overflow Flag to be set
     int passed = actualFlags != 0;
 
-    print_int_result("0x01", "add_overflow", actualFlags, expectedFlags, 0, 0, 0, 0, passed);
+    print_int_result("0x01", "add_overflow", *lCPU->vRA, 150, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }

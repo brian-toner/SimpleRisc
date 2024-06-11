@@ -145,6 +145,10 @@ int test_cpu_dec_ra_underflow();
 int test_cpu_dec_ra_positive();
 int test_cpu_dec_ra_negative();
 int test_cpu_dec_ra_zero();
+int test_cpu_dec_rb_underflow();
+int test_cpu_dec_rb_positive();
+int test_cpu_dec_rb_negative();
+int test_cpu_dec_rb_zero();
 
 #endif /* TESTS_H */
 

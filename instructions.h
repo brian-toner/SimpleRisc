@@ -85,6 +85,36 @@ void cpu_set_E(Risc256* aCPUPt);
 void cpu_set_F(Risc256* aCPUPt);
 
 // 0x10 - 0x1F: Integer arithmetic instructions
+static inline void cpu_add_register(Risc256* cpu, CPUType* regPtr, CPUType value) {
+    CPUType reg = *regPtr;
+    CPUType result = reg + value;
+
+    CPUType flags = *cpu->vRS & CZOS_MASK;
+
+    flags |= (result == 0) * Z_SET;
+    flags |= ((result & SIGNBIT) != 0) * S_SET;
+    flags |= (((reg & SIGNBIT) == (value & SIGNBIT)) && ((result & SIGNBIT) != (reg & SIGNBIT))) * O_SET;
+    flags |= (result < reg) * C_SET;
+
+    *cpu->vRS = flags;
+    *regPtr = result;
+}
+
+static inline void cpu_sub_register(Risc256* cpu, CPUType* regPtr, CPUType value) {
+    CPUType reg = *regPtr;
+    CPUType result = reg - value;
+
+    CPUType flags = *cpu->vRS & CZOS_MASK;
+
+    flags |= (result == 0) * Z_SET;
+    flags |= ((result & SIGNBIT) != 0) * S_SET;
+    flags |= ((reg & SIGNBIT) != (value & SIGNBIT) && (result & SIGNBIT) != (reg & SIGNBIT)) * O_SET;
+    flags |= (reg < value) * C_SET;
+
+    *cpu->vRS = flags;
+    *regPtr = result;
+}
+
 void cpu_add(Risc256* aCPUPt);
 void cpu_sub(Risc256* aCPUPt);
 void cpu_mul(Risc256* aCPUPt);
@@ -141,6 +171,9 @@ void cpu_inc_tp_ws(Risc256* aCPUPt);
 void cpu_inc_rd_re_ws(Risc256* aCPUPt);
 
 // 0x40 - 0x4F: Decrement instructions
+static inline void cpu_dec_register(Risc256* cpu, CPUType* regPtr, CPUType dec);
+static inline void cpu_dec_doubleregister(Risc256* cpu, CPUType* regPtr, CPUType dec);
+
 void cpu_dec_ra(Risc256* aCPUPt);
 void cpu_dec_rb(Risc256* aCPUPt);
 void cpu_dec_rc(Risc256* aCPUPt);
