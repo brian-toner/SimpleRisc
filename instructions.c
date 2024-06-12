@@ -51,15 +51,6 @@ bool is_iopl_authorized(Risc256* aCPUPt, CPUPtrType addr) {
     }
 }
 
-// Helper function to set the T flag
-void set_t_flag(Risc256* aCPUPt, bool condition) {
-    if (*aCPUPt->vRS & X_SET) {
-        *aCPUPt->vRS = (*aCPUPt->vRS & ~T_SET) | (condition ? T_SET : 0);
-    } else {
-        *aCPUPt->vRS = (*aCPUPt->vRS & ~T_SET) | (condition ? T_SET : 0);
-    }
-}
-
 
 InstructionHandler instructionHandlers[256] = {
     // 0x00 - 0x0F: SET instructions

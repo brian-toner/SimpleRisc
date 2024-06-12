@@ -34,7 +34,20 @@ double logbn(double a, double b);
 uint8_t get_current_ring(Risc256* aCPUPt);
 bool is_in_ring_0(Risc256* aCPUPt);
 bool is_iopl_authorized(Risc256* aCPUPt, CPUPtrType addr);
-void set_t_flag(Risc256* aCPUPt, bool condition);
+
+static inline void set_t_flag(Risc256* aCPUPt, CPUType cv) {
+    CPUType current_flags = *aCPUPt->vRS;       // Get the current flags from the vRS register
+    CPUType x = (current_flags & X_SET) >> 1;   // Extract the X flag and shift it right by 1 to make it easier to use in logical operations
+    CPUType t = current_flags & T_SET;          // Extract the T flag
+    CPUType c = cv * T_SET;                     // Set c to T_SET if cv is true, otherwise set to 0
+
+    // Compute new T flag value:
+    CPUType expr =  x ? (t & c) : (t | c);
+    
+    // Update the vRS register:
+    // Clear the current T flag in current_flags using T_CLR and set it to the new value from expr
+    *aCPUPt->vRS = (current_flags & T_CLR) | expr;
+}
 
 void pop_register_from_temp_stack(Risc256* aCPUPt, CPUType* reg, size_t size);
 void push_register_to_temp_stack(Risc256* aCPUPt, CPUType* reg, size_t size);

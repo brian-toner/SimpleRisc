@@ -36,6 +36,7 @@
         <itemPath>vcpu_instructions.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="tests" projectFiles="true">
+        <itemPath>cond_tests.c</itemPath>
         <itemPath>dec_tests.c</itemPath>
         <itemPath>fath_tests.c</itemPath>
         <itemPath>iath_tests.c</itemPath>
@@ -89,6 +90,8 @@
       <item path="check_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="cond_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="cond_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="dec_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -177,6 +180,8 @@
       <item path="check_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="cond_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="cond_tests.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="dec_instructions.c" ex="false" tool="0" flavor2="0">
       </item>

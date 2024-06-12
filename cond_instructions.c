@@ -44,8 +44,16 @@ void cpu_isneg_ra(Risc256* aCPUPt) {
 }
 
 void cpu_fgt_ra_rb(Risc256* aCPUPt) {
-    bool condition = *(CPUFloat*)aCPUPt->vRA > *(CPUFloat*)aCPUPt->vRB;
+    float reg1 = cputype_to_float(*aCPUPt->vRA);
+    float reg2 = cputype_to_float(*aCPUPt->vRB);
+    
+    *aCPUPt->vRS |= ( isnan(reg1) || isnan(reg2))?U_SET:0;
+    *aCPUPt->vRS |= ( isinf(reg1) || isinf(reg2) )?N_SET:0;
+   
+    bool condition = reg1 > reg2;
+
     set_t_flag(aCPUPt, condition);
+            
 }
 
 void cpu_flt_ra_rb(Risc256* aCPUPt) {

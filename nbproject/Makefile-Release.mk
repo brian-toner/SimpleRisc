@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/call_instructions.o \
 	${OBJECTDIR}/check_instructions.o \
 	${OBJECTDIR}/cond_instructions.o \
+	${OBJECTDIR}/cond_tests.o \
 	${OBJECTDIR}/dec_instructions.o \
 	${OBJECTDIR}/dec_tests.o \
 	${OBJECTDIR}/eload_instructions.o \
@@ -107,6 +108,11 @@ ${OBJECTDIR}/cond_instructions.o: cond_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cond_instructions.o cond_instructions.c
+
+${OBJECTDIR}/cond_tests.o: cond_tests.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cond_tests.o cond_tests.c
 
 ${OBJECTDIR}/dec_instructions.o: dec_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
