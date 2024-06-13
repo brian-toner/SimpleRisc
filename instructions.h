@@ -20,8 +20,6 @@ extern "C" {
 
 //#include "output.h"
 #include "CPU.h"  
-#include "minifloat.h"
-#include "half.h"
 #include <math.h>
 #include <string.h>
     
@@ -60,17 +58,118 @@ bool update_stack_pointer_push(Risc256* aCPUPt, size_t increment);
 
 
 #if WORDSIZE==1
-    CPUFloat cputype_to_float(CPUType aConv);
-    CPUType float_to_cputype(CPUFloat aConv);
+
 #elif WORDSIZE==2
+    float cputype_to_float(CPUType aConv){
+
+        float lRet = half_to_float(aConv);
+        return lRet;
+    }
+
+    CPUType float_to_cputype(float aConv){
+        CPUType lRet = half_from_float(*(uint32_t*)(&aConv) );
+        return lRet;
+    }
+    
+       bool cputype_is_nan(CPUType aConv){
+        return isnan(*(float*)half_to_float(aConv));
+    }
+    
+    bool cputype_is_inf(CPUType aConv){
+        return isinf(*(float*)half_to_float(aConv));
+    } 
+#elif WORDSIZE==4
+    double cputype_to_float(CPUType aConv){
+
+        float lRet = *(float*)(&aConv);
+        return lRet;
+    }
+
+    CPUType float_to_cputype(float aConv){
+        CPUType lRet = *(CPUType*)(&aConv);
+        return lRet;
+    }
+#elif WORDSIZE==8
+    double cputype_to_float(CPUType aConv){
+
+        double lRet = *(double*)(&aConv);
+        return lRet;
+    }
+
+    CPUType float_to_cputype(double aConv){
+        CPUType lRet = *(CPUType*)(&aConv);
+        return lRet;
+    }    
+#endif
+    
+#if WORDSIZE==1
+    #include "minifloat.h"
+
+    
+    static inline int compare_float(CPUSWord a, CPUSWord b) {
+        // Handle NaN separately
+        if (a == F2M_NAN || b == F2M_NAN) {
+            return (a == F2M_NAN && b == F2M_NAN) ? 0 : (a == F2M_NAN ? -1 : 1);
+        }
+
+        // Direct comparison for non-special values
+        return (a == b) ? 0 : (a < b ? -1 : 1);
+    }
+
+    static inline CPUFloat cputype_to_float(CPUType aConv){
+
+        CPUFloat lRet = mini_to_float(aConv);
+        return lRet;
+    }
+
+    static inline CPUType float_to_cputype(CPUFloat aConv){
+        CPUType lRet = float_to_mini(aConv);
+        return lRet;
+    }
+    
+    static inline bool cputype_is_nan(CPUType aConv){
+        return isNan(aConv);
+    }
+    
+    static inline bool cputype_is_inf(CPUType aConv){
+        return isInf(aConv);
+    }    
+#elif WORDSIZE==2
+    #include "half.h"
+
     CPUFloat cputype_to_float(CPUType aConv);
     CPUType float_to_cputype(float aConv);  
+    
+    static inline int compare_float(CPUSWord a, CPUSWord b) {
+        CPUFloat fa = cputype_to_float(a);
+        CPUFloat fb = cputype_to_float(b);
+
+        // Direct comparison for non-special values
+        return (fa == fb) ? 0 : (fa < fb ? -1 : 1);
+    }
+        
 #elif WORDSIZE==4
     CPUFloat cputype_to_float(CPUType aConv);
     CPUType float_to_cputype(float aConv);
+    
+    static inline int compare_float(CPUSWord a, CPUSWord b) {
+        CPUFloat fa = cputype_to_float(a);
+        CPUFloat fb = cputype_to_float(b);
+
+        // Direct comparison for non-special values
+        return (fa == fb) ? 0 : (fa < fb ? -1 : 1);
+    }
 #elif WORDSIZE==1
     CPUFloat cputype_to_float(CPUType aConv);
     CPUType float_to_cputype(double aConv); 
+    
+    static inline int compare_float(CPUSWord a, CPUSWord b) {
+        CPUFloat fa = cputype_to_float(a);
+        CPUFloat fb = cputype_to_float(b);
+
+        // Direct comparison for non-special values
+        return (fa == fb) ? 0 : (fa < fb ? -1 : 1);
+    }
 #endif
 
 //Needs a home...

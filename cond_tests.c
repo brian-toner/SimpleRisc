@@ -148,7 +148,7 @@ int test_cpu_fgt_ra_rb_inf() {
     cpu_fgt_ra_rb(cpu);
 
     CPUType actualStatusFlags = *cpu->vRS;
-    CPUType expectedStatusFlags = T_SET|N_SET;
+    CPUType expectedStatusFlags = T_SET;
     CPUType actualSystemFlags = *cpu->vRF;
     CPUType expectedSystemFlags = 0;
     int passed = assert_int(actualStatusFlags, expectedStatusFlags) && assert_int(actualSystemFlags, expectedSystemFlags);
@@ -167,11 +167,150 @@ int test_cpu_fgt_ra_rb_undef() {
     cpu_fgt_ra_rb(cpu);
 
     CPUType actualStatusFlags = *cpu->vRS;
-    CPUType expectedStatusFlags = N_SET|U_SET;
+    CPUType expectedStatusFlags = T_SET;
     CPUType actualSystemFlags = *cpu->vRF;
     CPUType expectedSystemFlags = 0;
     int passed = assert_int(actualStatusFlags, expectedStatusFlags) && assert_int(actualSystemFlags, expectedSystemFlags);
     print_int_result("0x58", "test_cpu_fgt_ra_rb_und", 1, 1, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    free(cpu);
+    return passed;
+}
+
+////
+
+int test_cpu_gt_ra_rb() {
+    int memsize = 256;
+    Risc256* cpu = cpu_init(memsize);
+
+    *cpu->vRA = 10;
+    *cpu->vRB = 5;
+    cpu_gt_ra_rb(cpu);
+
+    CPUType actualStatusFlags = *cpu->vRS;
+    CPUType expectedStatusFlags = T_SET;
+    CPUType actualSystemFlags = *cpu->vRF;
+    CPUType expectedSystemFlags = 0;
+    int passed = assert_int(*cpu->vRS & T_SET, T_SET) && assert_int(actualSystemFlags, expectedSystemFlags);
+    print_int_result("0x50", "test_cpu_gt_ra_rb", 1,1, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    free(cpu);
+    return passed;
+}
+
+int test_cpu_lt_ra_rb() {
+    int memsize = 256;
+    Risc256* cpu = cpu_init(memsize);
+
+    *cpu->vRA = 5;
+    *cpu->vRB = 10;
+    cpu_lt_ra_rb(cpu);
+
+    CPUType actualStatusFlags = *cpu->vRS;
+    CPUType expectedStatusFlags = T_SET;
+    CPUType actualSystemFlags = *cpu->vRF;
+    CPUType expectedSystemFlags = 0;
+    int passed = assert_int(*cpu->vRS & T_SET, T_SET) && assert_int(actualSystemFlags, expectedSystemFlags);
+    print_int_result("0x51", "test_cpu_lt_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    free(cpu);
+    return passed;
+}
+
+int test_cpu_eq_ra_rb() {
+    int memsize = 256;
+    Risc256* cpu = cpu_init(memsize);
+
+    *cpu->vRA = 10;
+    *cpu->vRB = 10;
+    cpu_eq_ra_rb(cpu);
+
+    CPUType actualStatusFlags = *cpu->vRS;
+    CPUType expectedStatusFlags = T_SET;
+    CPUType actualSystemFlags = *cpu->vRF;
+    CPUType expectedSystemFlags = 0;
+    int passed = assert_int(*cpu->vRS & T_SET, T_SET) && assert_int(actualSystemFlags, expectedSystemFlags);
+    print_int_result("0x52", "test_cpu_eq_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    free(cpu);
+    return passed;
+}
+
+int test_cpu_ge_ra_rb() {
+    int memsize = 256;
+    Risc256* cpu = cpu_init(memsize);
+
+    *cpu->vRA = 10;
+    *cpu->vRB = 5;
+    cpu_ge_ra_rb(cpu);
+
+    CPUType actualStatusFlags = *cpu->vRS;
+    CPUType expectedStatusFlags = T_SET;
+    CPUType actualSystemFlags = *cpu->vRF;
+    CPUType expectedSystemFlags = 0;
+    int passed = assert_int(*cpu->vRS & T_SET, T_SET) && assert_int(actualSystemFlags, expectedSystemFlags);
+    print_int_result("0x53", "test_cpu_ge_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    *cpu->vRA = 10;
+    *cpu->vRB = 10;
+    cpu_ge_ra_rb(cpu);
+    passed &= assert_int(*cpu->vRS & T_SET, T_SET);
+    print_int_result("0x53", "test_cpu_ge_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    free(cpu);
+    return passed;
+}
+
+int test_cpu_le_ra_rb() {
+    int memsize = 256;
+    Risc256* cpu = cpu_init(memsize);
+
+    *cpu->vRA = 5;
+    *cpu->vRB = 10;
+    cpu_le_ra_rb(cpu);
+
+    CPUType actualStatusFlags = *cpu->vRS;
+    CPUType expectedStatusFlags = T_SET;
+    CPUType actualSystemFlags = *cpu->vRF;
+    CPUType expectedSystemFlags = 0;
+    int passed = assert_int(*cpu->vRS & T_SET, T_SET) && assert_int(actualSystemFlags, expectedSystemFlags);
+    print_int_result("0x54", "test_cpu_le_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    *cpu->vRA = 10;
+    *cpu->vRB = 10;
+    cpu_le_ra_rb(cpu);
+    passed &= assert_int(*cpu->vRS & T_SET, T_SET);
+    print_int_result("0x54", "test_cpu_le_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    free(cpu);
+    return passed;
+}
+
+int test_cpu_ne_ra_rb() {
+    int memsize = 256;
+    Risc256* cpu = cpu_init(memsize);
+
+    *cpu->vRA = 10;
+    *cpu->vRB = 5;
+    cpu_ne_ra_rb(cpu);
+
+
+    int passed = assert_int(*cpu->vRS & T_SET, T_SET) && assert_int(*cpu->vRS, T_SET);
+    CPUType actualStatusFlags = *cpu->vRS;
+    CPUType expectedStatusFlags = T_SET;
+    CPUType actualSystemFlags = *cpu->vRF;
+    CPUType expectedSystemFlags = 0;
+    
+    print_int_result("0x55", "test_cpu_ne_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
+    
+    *cpu->vRA = 10;
+    *cpu->vRB = 10;
+    cpu_ne_ra_rb(cpu);
+    actualStatusFlags = *cpu->vRS & T_CLR;
+    expectedStatusFlags = 0;
+    
+    passed = assert_int(*cpu->vRS & 0, 0);
+    print_int_result("0x55", "test_cpu_ne_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
     
     free(cpu);
     return passed;

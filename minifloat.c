@@ -7,12 +7,7 @@
 
 #include "minifloat.h"
 
-#define F2M_NAN 128
-#define F2M_INF 127
-#define F2M_NINF 255
 
-#define MAXFLOAT 10000
-#define MINFLOAT -10000
 
 const unsigned int FLOAT8MAP[256] ={0x00000000,0x3883126f,0x3903126f,0x39449ba6,0x3983126f,0x39a3d70a,0x39c49ba6,0x39e56042,
                                 0x3a03126f,0x3a1374bc,0x3a23d70a,0x3a343958,0x3a449ba6,0x3a54fdf4,0x3a656042,0x3a75c28f,

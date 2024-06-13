@@ -159,6 +159,14 @@ int test_set_t_flag_100_1();
 int test_set_t_flag_101_1();
 int test_set_t_flag_110_0();
 int test_set_t_flag_111_1();
+
+int test_cpu_gt_ra_rb();
+int test_cpu_lt_ra_rb();
+int test_cpu_eq_ra_rb();
+int test_cpu_ge_ra_rb();
+int test_cpu_le_ra_rb();
+int test_cpu_ne_ra_rb();
+        
 int test_cpu_fgt_ra_rb();
 int test_cpu_fgt_ra_rb_inf();
 int test_cpu_fgt_ra_rb_undef();

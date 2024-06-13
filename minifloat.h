@@ -27,6 +27,13 @@ typedef unsigned char boolean;
 typedef unsigned char bool;
 #endif
 
+#define F2M_NAN 128
+#define F2M_INF 127
+#define F2M_NINF 255
+
+#define MAXFLOAT 10000
+#define MINFLOAT -10000
+
 float mini_to_float(unsigned char mini);
 unsigned char float_to_mini(float floatVal);
 void print_float_map();

@@ -56,8 +56,12 @@ typedef unsigned char uint8_t;
     #define PAGESIZE 0xFFFF
     #define SIGNBIT  0x8000
     #define ADDRSIZE 4
+    #define WORDMASK 0xFFFF
+    #define WORDSIZE_BITS 16
+    #define DWORDSIZE_BITS 32
     #define MAX_VAL 65536
     typedef unsigned short CPUType;
+    typedef short CPUSWord;
     typedef unsigned int CPUPtrType;
     typedef float CPUFloat;
 #elif WORDSIZE == 4
@@ -66,6 +70,7 @@ typedef unsigned char uint8_t;
     #define ADDRSIZE 8
     #define MAX_VAL 4294967296
     typedef unsigned int CPUType;
+    typedef int CPUSWord;
     typedef unsigned long CPUPtrType;
     typedef double CPUFloat;
 #elif WORDSIZE == 8
@@ -74,6 +79,7 @@ typedef unsigned char uint8_t;
     #define ADDRSIZE 8
     #define MAX_VAL 18446744073709551616
     typedef unsigned long CPUType;
+    typedef long CPUSWord;
     typedef unsigned long CPUPtrType;
     typedef double CPUFloat;
 #endif

@@ -218,61 +218,6 @@ double logbn(double a, double b){
     return log(a)/log(b);
 }
 
-#if WORDSIZE==1
-    CPUFloat cputype_to_float(CPUType aConv){
-
-        CPUFloat lRet = mini_to_float(aConv);
-        return lRet;
-    }
-
-    CPUType float_to_cputype(CPUFloat aConv){
-        CPUType lRet = float_to_mini(aConv);
-        return lRet;
-    }
-    
-    bool cputype_is_nan(CPUType aConv){
-        return isNan(aConv);
-    }
-    
-    bool cputype_is_inf(CPUType aConv){
-        return isInf(aConv);
-    }
-#elif WORDSIZE==2
-    float cputype_to_float(CPUType aConv){
-
-        float lRet = half_to_float(aConv);
-        return lRet;
-    }
-
-    CPUType float_to_cputype(float aConv){
-        CPUType lRet = half_from_float(*(uint32_t*)(&aConv) );
-        return lRet;
-    }
-    
-    
-#elif WORDSIZE==4
-    double cputype_to_float(CPUType aConv){
-
-        float lRet = *(float*)(&aConv);
-        return lRet;
-    }
-
-    CPUType float_to_cputype(float aConv){
-        CPUType lRet = *(CPUType*)(&aConv);
-        return lRet;
-    }
-#elif WORDSIZE==8
-    double cputype_to_float(CPUType aConv){
-
-        double lRet = *(double*)(&aConv);
-        return lRet;
-    }
-
-    CPUType float_to_cputype(double aConv){
-        CPUType lRet = *(CPUType*)(&aConv);
-        return lRet;
-    }    
-#endif
 
 
 
