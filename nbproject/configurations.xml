@@ -5,6 +5,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>CPU.h</itemPath>
+      <itemPath>CPU2.h</itemPath>
       <itemPath>half.h</itemPath>
       <itemPath>instructions.h</itemPath>
       <itemPath>minifloat.h</itemPath>
@@ -84,6 +85,8 @@
       <item path="CPU.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="CPU.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CPU2.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="call_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -174,6 +177,8 @@
       <item path="CPU.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="CPU.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CPU2.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="call_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
