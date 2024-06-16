@@ -9,13 +9,13 @@ int test_cpu_add_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0; // Initialization failed
 
-    *lCPU->vRA = 10;
-    *lCPU->vRB = 20;
+    *lCPU->RA = 10;
+    *lCPU->RB = 20;
     
     cpu_add(lCPU);
-    int passed = *lCPU->vRA == 30;
+    int passed = *lCPU->RA == 30;
     
-    print_int_result("0x01", "add", *lCPU->vRA, 30, 0, 0, 0, 0, passed);
+    print_int_result("0x01", "add", *lCPU->RA, 30, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -27,15 +27,15 @@ int test_cpu_add_zero_flag() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 25;
-    *lCPU->vRB = -25; // Assuming CPUType supports negative values
+    *lCPU->RA = 25;
+    *lCPU->RB = -25; // Assuming CPUType supports negative values
 
     cpu_add(lCPU);
-    CPUType actualFlags = *lCPU->vRS & Z_SET;
+    CPUType actualFlags = *lCPU->RS & Z_SET;
     CPUType expectedFlags = Z_SET; // Expecting Zero Flag to be set
-    int passed = (*lCPU->vRA == 0) && (actualFlags & Z_SET);
+    int passed = (*lCPU->RA == 0) && (actualFlags & Z_SET);
 
-    print_int_result("0x01", "add_zero", *lCPU->vRA, 0, actualFlags, expectedFlags,0, 0, passed);
+    print_int_result("0x01", "add_zero", *lCPU->RA, 0, actualFlags, expectedFlags,0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -45,16 +45,16 @@ int test_cpu_add_carry_flag() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 200;
-    *lCPU->vRB = 100;
+    *lCPU->RA = 200;
+    *lCPU->RB = 100;
 
     cpu_add(lCPU);
     
-    CPUType actualFlags = *lCPU->vRS & C_SET;
+    CPUType actualFlags = *lCPU->RS & C_SET;
     CPUType expectedFlags = C_SET; // Expecting Carry Flag to be set
     int passed = actualFlags != 0;
 
-    print_int_result("0x01", "add_carry", *lCPU->vRA, 44, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x01", "add_carry", *lCPU->RA, 44, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -67,16 +67,16 @@ int test_cpu_add_overflow_flag() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;  // Close to the max value of a signed 8-bit int
-    *lCPU->vRB = 50;
+    *lCPU->RA = 100;  // Close to the max value of a signed 8-bit int
+    *lCPU->RB = 50;
 
     cpu_add(lCPU);
     
-    CPUType actualFlags = *lCPU->vRS ;
+    CPUType actualFlags = *lCPU->RS ;
     CPUType expectedFlags = S_SET|O_SET; // Expecting Overflow Flag to be set
     int passed = actualFlags != 0;
 
-    print_int_result("0x01", "add_overflow", *lCPU->vRA, 150, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x01", "add_overflow", *lCPU->RA, 150, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -86,13 +86,13 @@ int test_cpu_sub_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 50;
-    *lCPU->vRB = 20;
+    *lCPU->RA = 50;
+    *lCPU->RB = 20;
     
     cpu_sub(lCPU);
-    int passed = *lCPU->vRA == 30;
+    int passed = *lCPU->RA == 30;
 
-    print_int_result("0x02", "sub_basic", *lCPU->vRA, 30, 0, 0, 0, 0, passed);
+    print_int_result("0x02", "sub_basic", *lCPU->RA, 30, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -102,16 +102,16 @@ int test_cpu_sub_zero_flag() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 20;
-    *lCPU->vRB = 20;
+    *lCPU->RA = 20;
+    *lCPU->RB = 20;
 
     cpu_sub(lCPU);
     
-    CPUType actualFlags = *lCPU->vRS & Z_SET;
+    CPUType actualFlags = *lCPU->RS & Z_SET;
     CPUType expectedFlags = Z_SET;
-    int passed = (*lCPU->vRA == 0) && (actualFlags == expectedFlags);
+    int passed = (*lCPU->RA == 0) && (actualFlags == expectedFlags);
 
-    print_int_result("0x02", "sub_zero", *lCPU->vRA, 0, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x02", "sub_zero", *lCPU->RA, 0, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -121,16 +121,16 @@ int test_cpu_sub_carry_flag() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 20;
-    *lCPU->vRB = 50;
+    *lCPU->RA = 20;
+    *lCPU->RB = 50;
 
     cpu_sub(lCPU);
     
-    CPUType actualFlags = *lCPU->vRS & C_SET;
+    CPUType actualFlags = *lCPU->RS & C_SET;
     CPUType expectedFlags = C_SET;
     int passed = (actualFlags == expectedFlags);
 
-    print_int_result("0x02", "sub_carry", *lCPU->vRA, -30, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x02", "sub_carry", *lCPU->RA, -30, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -140,16 +140,16 @@ int test_cpu_sub_overflow_flag() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 50; // Close to the max value of a signed 8-bit int
-    *lCPU->vRB = -100;
+    *lCPU->RA = 50; // Close to the max value of a signed 8-bit int
+    *lCPU->RB = -100;
 
     cpu_sub(lCPU);
     
-    CPUType actualFlags = *lCPU->vRS & O_SET;
+    CPUType actualFlags = *lCPU->RS & O_SET;
     CPUType expectedFlags = O_SET;
     int passed = (actualFlags == expectedFlags);
 
-    print_int_result("0x02", "sub_overflow", *lCPU->vRA, 150, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x02", "sub_overflow", *lCPU->RA, 150, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -164,14 +164,14 @@ int test_cpu_qadd(){
     CPUType v2 = rand() % 50;
     CPUType res = v1+v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qadd(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qadd", *lCPU->vRA, res, passed);
-    print_int_result("0x00", "qadd", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qadd", *lCPU->RA, res, passed);
+    print_int_result("0x00", "qadd", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -188,14 +188,14 @@ int test_cpu_qsub(){
     CPUType v2 = rand() % 50;
     CPUType res = v1-v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qsub(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qsub", *lCPU->vRA, res, passed);
-    print_int_result("0x01", "qsub", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qsub", *lCPU->RA, res, passed);
+    print_int_result("0x01", "qsub", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -211,14 +211,14 @@ int test_cpu_qmul(){
     CPUType v2 = rand() % 15;
     CPUType res = v1*v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qmul(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qmul", *lCPU->vRA, res, passed);
-    print_int_result("0x02", "qmul", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qmul", *lCPU->RA, res, passed);
+    print_int_result("0x02", "qmul", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -235,14 +235,14 @@ int test_cpu_qdiv(){
     CPUType v2 = rand() % 15+1;
     CPUType res = v1/v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qdiv(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qdiv", *lCPU->vRA, res, passed);
-    print_int_result("0x03", "qdiv", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qdiv", *lCPU->RA, res, passed);
+    print_int_result("0x03", "qdiv", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -259,14 +259,14 @@ int test_cpu_qmod(){
     CPUType v2 = (rand() % 254)+1;
     CPUType res = v1%v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qmod(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qmod", *lCPU->vRA, res, passed);
-    print_int_result("0x04", "qmod", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qmod", *lCPU->RA, res, passed);
+    print_int_result("0x04", "qmod", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -282,14 +282,14 @@ int test_cpu_stb(){
     CPUType v2 = (rand() % (sizeof(CPUType)*8) );
     CPUType res = (v1)|(1<<v2);
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_stb(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_stb", *lCPU->vRA, res, passed);
-    print_int_result("0x05", "stb", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_stb", *lCPU->RA, res, passed);
+    print_int_result("0x05", "stb", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -306,14 +306,14 @@ int test_cpu_clb(){
     CPUType v2 = (rand() % (sizeof(CPUType)*8) );
     CPUType res = (v1)&(~(1<<(v2)));
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_clb(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_clb", *lCPU->vRA, res, passed);
-    print_int_result("0x06", "clb", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_clb", *lCPU->RA, res, passed);
+    print_int_result("0x06", "clb", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -329,13 +329,13 @@ int test_cpu_qnot(){
     CPUType v1 = (rand() % 255);
     CPUType res = ~v1;
     
-    *lCPU->vRA = v1;
+    *lCPU->RA = v1;
     
     cpu_qnot(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qnot", *lCPU->vRA, res, passed);
-    print_int_result("0x07", "qnot", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qnot", *lCPU->RA, res, passed);
+    print_int_result("0x07", "qnot", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -351,14 +351,14 @@ int test_cpu_qand(){
     CPUType v2 = (rand() % 255);
     CPUType res = v1&v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qand(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qand", *lCPU->vRA, res, passed);
-    print_int_result("0x08", "qand", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qand", *lCPU->RA, res, passed);
+    print_int_result("0x08", "qand", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -374,14 +374,14 @@ int test_cpu_qor(){
     CPUType v2 = (rand() % 255);
     CPUType res = v1|v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qor(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qor", *lCPU->vRA, res, passed);
-    print_int_result("0x09", "qor", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qor", *lCPU->RA, res, passed);
+    print_int_result("0x09", "qor", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -397,14 +397,14 @@ int test_cpu_qxor(){
     CPUType v2 = (rand() % 255);
     CPUType res = v1^v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qxor(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qxor", *lCPU->vRA, res, passed);
-    print_int_result("0x0A", "qxor", *lCPU->vRA, res, 0, 0, 0, 0, passed);
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qxor", *lCPU->RA, res, passed);
+    print_int_result("0x0A", "qxor", *lCPU->RA, res, 0, 0, 0, 0, passed);
     
     free(lCPU);
     
@@ -420,14 +420,14 @@ int test_cpu_qshl(){
     CPUType v2 = (rand() % (sizeof(CPUType)*8));
     CPUType res = v1<<v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qshl(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qshl", *lCPU->vRA, res, passed);
-    print_int_result("0x0B", "qshl", *lCPU->vRA, res, 0, 0, 0, 0, passed); 
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qshl", *lCPU->RA, res, passed);
+    print_int_result("0x0B", "qshl", *lCPU->RA, res, 0, 0, 0, 0, passed); 
     
     free(lCPU);
     
@@ -443,14 +443,14 @@ int test_cpu_qshr(){
     CPUType v2 = (rand() % (sizeof(CPUType)*8));
     CPUType res = v1>>v2;
     
-    *lCPU->vRA = v1;
-    *lCPU->vRB = v2;
+    *lCPU->RA = v1;
+    *lCPU->RB = v2;
     
     cpu_qshr(lCPU);
-    int passed = *lCPU->vRA==res;
+    int passed = *lCPU->RA==res;
 
-    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qshr", *lCPU->vRA, res, passed);
-    print_int_result("0x0C", "qshr", *lCPU->vRA, res, 0, 0, 0, 0, passed); 
+    //printf("%-20s | %-7d | %-7d | %-7d |\n", "test_cpu_qshr", *lCPU->RA, res, passed);
+    print_int_result("0x0C", "qshr", *lCPU->RA, res, 0, 0, 0, 0, passed); 
     
     free(lCPU);
     
@@ -465,13 +465,13 @@ int test_cpu_mul_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 6;
-    *lCPU->vRB = 7;
+    *lCPU->RA = 6;
+    *lCPU->RB = 7;
 
     cpu_mul(lCPU);
-    int passed = (*lCPU->vRA == 42) && ((*lCPU->vRS & CZOS_MASK) == 0);
+    int passed = (*lCPU->RA == 42) && ((*lCPU->RS & CZOS_MASK) == 0);
 
-    print_int_result("0x12", "mul_basic", *lCPU->vRA, 42, 0, 0, 0, 0, passed);
+    print_int_result("0x12", "mul_basic", *lCPU->RA, 42, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -482,13 +482,13 @@ int test_cpu_div_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;
-    *lCPU->vRB = 4;
+    *lCPU->RA = 100;
+    *lCPU->RB = 4;
 
     cpu_div(lCPU);
-    int passed = (*lCPU->vRA == 25) && ((*lCPU->vRS & CZOS_MASK) == 0);
+    int passed = (*lCPU->RA == 25) && ((*lCPU->RS & CZOS_MASK) == 0);
 
-    print_int_result("0x13", "div_basic", *lCPU->vRA, 25, 0, 0, 0, 0, passed);
+    print_int_result("0x13", "div_basic", *lCPU->RA, 25, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -499,15 +499,15 @@ int test_cpu_div_by_zero() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;
-    *lCPU->vRB = 0;
+    *lCPU->RA = 100;
+    *lCPU->RB = 0;
 
     cpu_div(lCPU);
-    CPUType actualFlags = *lCPU->vRS & U_SET;
+    CPUType actualFlags = *lCPU->RS & U_SET;
     CPUType expectedFlags = U_SET; // Undefined flag expected
     int passed = (actualFlags == expectedFlags);
 
-    print_int_result("0x13", "div_by_zero", *lCPU->vRA, 100, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x13", "div_by_zero", *lCPU->RA, 100, actualFlags, expectedFlags, 0, 0, passed);
 
     free(lCPU);
     return passed;
@@ -519,13 +519,13 @@ int test_cpu_mod_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;
-    *lCPU->vRB = 30;
+    *lCPU->RA = 100;
+    *lCPU->RB = 30;
 
     cpu_mod(lCPU);
-    int passed = (*lCPU->vRA == 10) && ((*lCPU->vRS & CZOS_MASK) == 0);
+    int passed = (*lCPU->RA == 10) && ((*lCPU->RS & CZOS_MASK) == 0);
 
-    print_int_result("0x14", "mod_basic", *lCPU->vRA, 10, 0, 0, 0, 0, passed);
+    print_int_result("0x14", "mod_basic", *lCPU->RA, 10, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -536,15 +536,15 @@ int test_cpu_mod_by_zero() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;
-    *lCPU->vRB = 0;
+    *lCPU->RA = 100;
+    *lCPU->RB = 0;
 
     cpu_mod(lCPU);
-    CPUType actualFlags = *lCPU->vRS & U_SET;
+    CPUType actualFlags = *lCPU->RS & U_SET;
     CPUType expectedFlags = U_SET; // Undefined flag expected
     int passed = (actualFlags == expectedFlags);
 
-    print_int_result("0x14", "mod_by_zero", *lCPU->vRA, 100, actualFlags, expectedFlags, 0, 0, passed);
+    print_int_result("0x14", "mod_by_zero", *lCPU->RA, 100, actualFlags, expectedFlags, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -555,13 +555,13 @@ int test_cpu_setb_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 0;
-    *lCPU->vRB = 3; // Set the 3rd bit
+    *lCPU->RA = 0;
+    *lCPU->RB = 3; // Set the 3rd bit
 
     cpu_setb(lCPU);
-    int passed = (*lCPU->vRA == 8); // 8 is 2^3
+    int passed = (*lCPU->RA == 8); // 8 is 2^3
 
-    print_int_result("0x15", "setb_basic", *lCPU->vRA, 8, 0, 0, 0, 0, passed);
+    print_int_result("0x15", "setb_basic", *lCPU->RA, 8, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -572,13 +572,13 @@ int test_cpu_clrb_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 15; // 1111 in binary
-    *lCPU->vRB = 2; // Clear the 2nd bit
+    *lCPU->RA = 15; // 1111 in binary
+    *lCPU->RB = 2; // Clear the 2nd bit
 
     cpu_clrb(lCPU);
-    int passed = (*lCPU->vRA == 0b1011); // 1011 in binary
+    int passed = (*lCPU->RA == 0b1011); // 1011 in binary
 
-    print_int_result("0x16", "clrb_basic", *lCPU->vRA, 0b1011, 0, 0, 0, 0, passed);
+    print_int_result("0x16", "clrb_basic", *lCPU->RA, 0b1011, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -589,12 +589,12 @@ int test_cpu_not_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 0xF0; // Some arbitrary value
+    *lCPU->RA = 0xF0; // Some arbitrary value
 
     cpu_not(lCPU);
-    int passed = (*lCPU->vRA == 0x0F); // Complement of 0xF0
+    int passed = (*lCPU->RA == 0x0F); // Complement of 0xF0
 
-    print_int_result("0x17", "not_basic", *lCPU->vRA, 0x0F, 0, 0, 0, 0, passed);
+    print_int_result("0x17", "not_basic", *lCPU->RA, 0x0F, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -605,13 +605,13 @@ int test_cpu_and_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 0xF0;
-    *lCPU->vRB = 0x0F;
+    *lCPU->RA = 0xF0;
+    *lCPU->RB = 0x0F;
 
     cpu_and(lCPU);
-    int passed = (*lCPU->vRA == 0x00);
+    int passed = (*lCPU->RA == 0x00);
 
-    print_int_result("0x18", "and_basic", *lCPU->vRA, 0x00, 0, 0, 0, 0, passed);
+    print_int_result("0x18", "and_basic", *lCPU->RA, 0x00, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -622,13 +622,13 @@ int test_cpu_or_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 0xF0;
-    *lCPU->vRB = 0x0F;
+    *lCPU->RA = 0xF0;
+    *lCPU->RB = 0x0F;
 
     cpu_or(lCPU);
-    int passed = (*lCPU->vRA == 0xFF);
+    int passed = (*lCPU->RA == 0xFF);
 
-    print_int_result("0x19", "or_basic", *lCPU->vRA, 0xFF, 0, 0, 0, 0, passed);
+    print_int_result("0x19", "or_basic", *lCPU->RA, 0xFF, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -639,13 +639,13 @@ int test_cpu_xor_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 0xF0;
-    *lCPU->vRB = 0x0F;
+    *lCPU->RA = 0xF0;
+    *lCPU->RB = 0x0F;
 
     cpu_xor(lCPU);
-    int passed = (*lCPU->vRA == 0xFF);
+    int passed = (*lCPU->RA == 0xFF);
 
-    print_int_result("0x1A", "xor_basic", *lCPU->vRA, 0xFF, 0, 0, 0, 0, passed);
+    print_int_result("0x1A", "xor_basic", *lCPU->RA, 0xFF, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -656,13 +656,13 @@ int test_cpu_shl_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 1;
-    *lCPU->vRB = 3; // Shift left by 3 bits
+    *lCPU->RA = 1;
+    *lCPU->RB = 3; // Shift left by 3 bits
 
     cpu_shl(lCPU);
-    int passed = (*lCPU->vRA == 8); // 1 << 3 is 8
+    int passed = (*lCPU->RA == 8); // 1 << 3 is 8
 
-    print_int_result("0x1B", "shl_basic", *lCPU->vRA, 8, 0, 0, 0, 0, passed);
+    print_int_result("0x1B", "shl_basic", *lCPU->RA, 8, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -673,13 +673,13 @@ int test_cpu_shr_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 8;
-    *lCPU->vRB = 3; // Shift right by 3 bits
+    *lCPU->RA = 8;
+    *lCPU->RB = 3; // Shift right by 3 bits
 
     cpu_shr(lCPU);
-    int passed = (*lCPU->vRA == 1); // 8 >> 3 is 1
+    int passed = (*lCPU->RA == 1); // 8 >> 3 is 1
 
-    print_int_result("0x1C", "shr_basic", *lCPU->vRA, 1, 0, 0, 0, 0, passed);
+    print_int_result("0x1C", "shr_basic", *lCPU->RA, 1, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -691,15 +691,15 @@ int test_cpu_addc_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;
-    *lCPU->vRB = 55;
-    *lCPU->vRS = C_SET; // Set carry flag
+    *lCPU->RA = 100;
+    *lCPU->RB = 55;
+    *lCPU->RS = C_SET; // Set carry flag
 
     cpu_adc(lCPU);
-    int passed = (*lCPU->vRA == 156) && ((*lCPU->vRS & (C_SET | Z_SET | O_SET)) == 0);
+    int passed = (*lCPU->RA == 156) && ((*lCPU->RS & (C_SET | Z_SET | O_SET)) == 0);
 
-    print_int_result("0x1D", "addc_basic", *lCPU->vRA, 156, 0, 0, 0, 0, passed);
-    print_int_result("0x1D", "addc_basic (flags)", *lCPU->vRS, *lCPU->vRS, 0, 0, 0, 0, passed);
+    print_int_result("0x1D", "addc_basic", *lCPU->RA, 156, 0, 0, 0, 0, passed);
+    print_int_result("0x1D", "addc_basic (flags)", *lCPU->RS, *lCPU->RS, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -711,15 +711,15 @@ int test_cpu_subb_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 100;
-    *lCPU->vRB = 55;
-    *lCPU->vRS = C_SET; // Set carry flag
+    *lCPU->RA = 100;
+    *lCPU->RB = 55;
+    *lCPU->RS = C_SET; // Set carry flag
 
     cpu_sbb(lCPU);
-    int passed = (*lCPU->vRA == 44) && ((*lCPU->vRS & CZOS_MASK) == 0);
+    int passed = (*lCPU->RA == 44) && ((*lCPU->RS & CZOS_MASK) == 0);
 
-    print_int_result("0x1E", "subb_basic", *lCPU->vRA, 44, 0, 0, 0, 0, passed);
-    print_int_result("0x1E", "subb_basic (flags)", *lCPU->vRS, *lCPU->vRS&CZOS_MASK, 0, 0, 0, 0, passed);
+    print_int_result("0x1E", "subb_basic", *lCPU->RA, 44, 0, 0, 0, 0, passed);
+    print_int_result("0x1E", "subb_basic (flags)", *lCPU->RS, *lCPU->RS&CZOS_MASK, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -730,12 +730,12 @@ int test_cpu_twos_basic() {
     Risc256* lCPU = cpu_init(memsize);
     if (!lCPU) return 0;
 
-    *lCPU->vRA = 50;
+    *lCPU->RA = 50;
 
     cpu_twos(lCPU);
-    int passed = (*lCPU->vRA == (CPUType)-50); // Two's complement of 50
+    int passed = (*lCPU->RA == (CPUType)-50); // Two's complement of 50
 
-    print_int_result("0x1F", "twos_basic", *lCPU->vRA, (CPUType)-50, 0, 0, 0, 0, passed);
+    print_int_result("0x1F", "twos_basic", *lCPU->RA, (CPUType)-50, 0, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }

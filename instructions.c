@@ -10,43 +10,43 @@
 //#include <c++/10/complex>
 //#define _GLIBCXX_COMPLEX 0
 
-uint8_t get_iopl(Risc256* aCPUPt){
-    CPUType IOPL = *aCPUPt->vRF & (P0_SET | P1_SET);
+uint8_t get_iopl(Risc256* cpu){
+    CPUType IOPL = *cpu->RF & (P0_SET | P1_SET);
     return IOPL;
 }
 
-uint8_t get_current_ring(Risc256* aCPUPt) {
-    CPUPtrType pc = *aCPUPt->vPC;
-    if (pc < *aCPUPt->vRING1Start) {
+uint8_t get_current_ring(Risc256* cpu) {
+    CPUPtrType pc = *cpu->PC;
+    if (pc < *cpu->RING1Start) {
         return 0; // Ring 0
-    } else if (pc < *aCPUPt->vRING2Start) {
+    } else if (pc < *cpu->RING2Start) {
         return 1; // Ring 1
-    } else if (pc < *aCPUPt->vRING3Start) {
+    } else if (pc < *cpu->RING3Start) {
         return 2; // Ring 2
     } else {
         return 3; // Ring 3
     }
 }
 
-void cpu_set_addr(Risc256* aCPUPt){
-    aCPUPt->vRDAddr = aCPUPt->vMemByte+(*aCPUPt->vRD);
-    aCPUPt->vREAddr = aCPUPt->vMemByte+(*aCPUPt->vRE);
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
-    aCPUPt->vTPAddr = aCPUPt->vMemByte+(*aCPUPt->vTP);
+void cpu_set_addr(Risc256* cpu){
+    cpu->RDAddr = cpu-> MemByte+(*cpu->RD);
+    cpu->REAddr = cpu-> MemByte+(*cpu->RE);
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
+    cpu->TPAddr = cpu-> MemByte+(*cpu->TP);
 
 }
 
 // Helper function to check if we are in ring 0
-bool is_in_ring_0(Risc256* aCPUPt) {
-    return !(*aCPUPt->vRF & (P0_SET | P1_SET));
+bool is_in_ring_0(Risc256* cpu) {
+    return !(*cpu->RF & (P0_SET | P1_SET));
 }
 
-bool is_iopl_authorized(Risc256* aCPUPt, CPUPtrType addr) {
-    uint8_t current_ring = get_current_ring(aCPUPt);
-    if (current_ring <= (*aCPUPt->vRF & (P0_SET | P1_SET))) {
+bool is_iopl_authorized(Risc256* cpu, CPUPtrType addr) {
+    uint8_t current_ring = get_current_ring(cpu);
+    if (current_ring <= (*cpu->RF & (P0_SET | P1_SET))) {
         return true; // Authorized if current ring is within IOPL
     } else {
-        *aCPUPt->vRF |= (E_SET | A_SET); // Set error and authorization error flags if not authorized
+        *cpu->RF |= (E_SET | A_SET); // Set error and authorization error flags if not authorized
         return false;
     }
 }
@@ -110,8 +110,8 @@ InstructionHandler instructionHandlers[256] = {
     cpu_mov_rd_rd, cpu_mov_ra_0, cpu_mov_rb_0, cpu_mov_rc_0, cpu_mov_rd_0, cpu_mov_re_0, cpu_mov_ri_0, cpu_mov_rr_0,
     
     //0xE0-0xEF: VCPU instructions
-    cpu_vinit, cpu_vstart, cpu_vstop, cpu_vstep,  cpu_vsave, cpu_vload, cpu_vrsave, cpu_vrload,
-    cpu_vbegin, cpu_vend, cpu_vrssetre, cpu_vcopy, cpu_viserror, cpu_vishlt, cpu_vswinterrupt, cpu_vhwinterrupt,
+    cpu_vinit, cpu_start, cpu_stop, cpu_step,  cpu_save, cpu_vload, cpu_RSave, cpu_vrload,
+    cpu_vbegin, cpu_vend, cpu_RSsetre, cpu_vcopy, cpu_viserror, cpu_vishlt, cpu_SWInterrupt, cpu_HWInterrupt,
         
     //0xF0-0xFF: Control instructions
     cpu_func_call, cpu_swi, cpu_branch, cpu_branch_t, cpu_branch_f, cpu_ternary_ra_rb, cpu_ternary_rd_re, cpu_ternary_rd_re_mem, 
@@ -120,94 +120,94 @@ InstructionHandler instructionHandlers[256] = {
 };
 
 void executeInstruction(Risc256* cpu) {
-    uint8_t opcode = *(cpu->vMemByte + *(cpu->vPC));
+    uint8_t opcode = *(cpu-> MemByte + *(cpu->PC));
     instructionHandlers[opcode](cpu);
-    (*(cpu->vPC))++; // Increment the program counter after executing the instruction
+    (*(cpu->PC))++; // Increment the program counter after executing the instruction
 }
 
 
 
 // Helper function to update stack pointer for push operations with boundary and ring 0 check for the regular stack
-bool update_stack_pointer_push(Risc256* aCPUPt, size_t increment) {
-    if (is_in_ring_0(aCPUPt)) {
-        if (*aCPUPt->vSP + increment <= *aCPUPt->vSEP) {
-            *aCPUPt->vSP += increment;
+bool update_stack_pointer_push(Risc256* cpu, size_t increment) {
+    if (is_in_ring_0(cpu)) {
+        if (*cpu->SP + increment <= *cpu->SEP) {
+            *cpu->SP += increment;
             return true;
         } else {
-            *aCPUPt->vRF |= E_SET; // Set error flag if stack overflow
+            *cpu->RF |= E_SET; // Set error flag if stack overflow
         }
     } else {
-        *aCPUPt->vRF |= (E_SET | A_SET); // Set error and authorization error flags if not in ring 0
+        *cpu->RF |= (E_SET | A_SET); // Set error and authorization error flags if not in ring 0
     }
     return false;
 }
 
 // Helper function to update stack pointer for pop operations with boundary and ring 0 check for the regular stack
-bool update_stack_pointer_pop(Risc256* aCPUPt, size_t decrement) {
-    if (is_in_ring_0(aCPUPt)) {
-        if (*aCPUPt->vSP >= *aCPUPt->vSSP + decrement) {
-            *aCPUPt->vSP -= decrement;
+bool update_stack_pointer_pop(Risc256* cpu, size_t decrement) {
+    if (is_in_ring_0(cpu)) {
+        if (*cpu->SP >= *cpu->SSP + decrement) {
+            *cpu->SP -= decrement;
             return true;
         } else {
-            *aCPUPt->vRF |= E_SET; // Set error flag if stack underflow
+            *cpu->RF |= E_SET; // Set error flag if stack underflow
         }
     } else {
-        *aCPUPt->vRF |= (E_SET | A_SET); // Set error and authorization error flags if not in ring 0
+        *cpu->RF |= (E_SET | A_SET); // Set error and authorization error flags if not in ring 0
     }
     return false;
 }
 
 // Helper function to push a register onto the regular stack
-void push_register_to_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
-    if (update_stack_pointer_push(aCPUPt, size)) {
-        unsigned char* spAddr = aCPUPt->vMemByte + (*aCPUPt->vSP - size);
+void push_register_to_stack(Risc256* cpu, CPUType* reg, size_t size) {
+    if (update_stack_pointer_push(cpu, size)) {
+        unsigned char* spAddr = cpu-> MemByte + (*cpu->SP - size);
         memcpy(spAddr, reg, size);
     }
 }
 
 // Helper function to pop a register from the regular stack
-void pop_register_from_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
-    if (update_stack_pointer_pop(aCPUPt, size)) {
-        unsigned char* spAddr = aCPUPt->vMemByte + *aCPUPt->vSP;
+void pop_register_from_stack(Risc256* cpu, CPUType* reg, size_t size) {
+    if (update_stack_pointer_pop(cpu, size)) {
+        unsigned char* spAddr = cpu-> MemByte + *cpu->SP;
         memcpy(reg, spAddr, size);
     }
 }
 
 
 // Helper function to update stack pointer for push operations with boundary check for the temporary stack
-bool update_temp_stack_pointer_push(Risc256* aCPUPt, size_t increment) {
-    if (*aCPUPt->vTP + increment <= *aCPUPt->vTEP) {
-        *aCPUPt->vTP += increment;
+bool update_temp_stack_pointer_push(Risc256* cpu, size_t increment) {
+    if (*cpu->TP + increment <= *cpu->TEP) {
+        *cpu->TP += increment;
         return true;
     } else {
-        *aCPUPt->vRF |= E_SET; // Set error flag if stack overflow
+        *cpu->RF |= E_SET; // Set error flag if stack overflow
     }
     return false;
 }
 
 // Helper function to update stack pointer for pop operations with boundary check for the temporary stack
-bool update_temp_stack_pointer_pop(Risc256* aCPUPt, size_t decrement) {
-    if (*aCPUPt->vTP >= *aCPUPt->vTSP + decrement) {
-        *aCPUPt->vTP -= decrement;
+bool update_temp_stack_pointer_pop(Risc256* cpu, size_t decrement) {
+    if (*cpu->TP >= *cpu->TSP + decrement) {
+        *cpu->TP -= decrement;
         return true;
     } else {
-        *aCPUPt->vRF |= E_SET; // Set error flag if stack underflow
+        *cpu->RF |= E_SET; // Set error flag if stack underflow
     }
     return false;
 }
 
 // Helper function to push a register onto the temporary stack
-void push_register_to_temp_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
-    if (update_temp_stack_pointer_push(aCPUPt, size)) {
-        unsigned char* tpAddr = aCPUPt->vMemByte + (*aCPUPt->vTP - size);
+void push_register_to_temp_stack(Risc256* cpu, CPUType* reg, size_t size) {
+    if (update_temp_stack_pointer_push(cpu, size)) {
+        unsigned char* tpAddr = cpu-> MemByte + (*cpu->TP - size);
         memcpy(tpAddr, reg, size);
     }
 }
 
 // Helper function to pop a register from the temporary stack
-void pop_register_from_temp_stack(Risc256* aCPUPt, CPUType* reg, size_t size) {
-    if (update_temp_stack_pointer_pop(aCPUPt, size)) {
-        unsigned char* tpAddr = aCPUPt->vMemByte + *aCPUPt->vTP;
+void pop_register_from_temp_stack(Risc256* cpu, CPUType* reg, size_t size) {
+    if (update_temp_stack_pointer_pop(cpu, size)) {
+        unsigned char* tpAddr = cpu-> MemByte + *cpu->TP;
         memcpy(reg, tpAddr, size);
     }
 }
@@ -221,77 +221,77 @@ double logbn(double a, double b){
 
 
 
-void cpu_qstf(Risc256* aCPUPt){
+void cpu_qstf(Risc256* cpu){
     
-    char* lBuff = (char*)(aCPUPt->vRA+*aCPUPt->vRE);
+    char* lBuff = (char*)(cpu->RA+*cpu->RE);
     CPUFloat lFVal = atof(lBuff);
     CPUType lVal = float_to_cputype(lFVal);
-    *aCPUPt->vRA = lVal;
+    *cpu->RA = lVal;
     
 }
 
-void cpu_qsti(Risc256* aCPUPt){
+void cpu_qsti(Risc256* cpu){
     
-    char* lBuff = (char*)(aCPUPt->vRA+*aCPUPt->vRE);
-    *aCPUPt->vRA  = atoi(lBuff);
+    char* lBuff = (char*)(cpu->RA+*cpu->RE);
+    *cpu->RA  = atoi(lBuff);
     
 }
 
-void cpu_nop(Risc256* aCPUPt){
+void cpu_nop(Risc256* cpu){
     return;
 }
 
 
-void cpu_qadd(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)+(*aCPUPt->vRB);
+void cpu_qadd(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)+(*cpu->RB);
 }
 
-void cpu_qsub(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)-(*aCPUPt->vRB);
+void cpu_qsub(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)-(*cpu->RB);
 }
 
-void cpu_qmul(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)*(*aCPUPt->vRB);
+void cpu_qmul(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)*(*cpu->RB);
 }
 
-void cpu_qdiv(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)/(*aCPUPt->vRB);
+void cpu_qdiv(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)/(*cpu->RB);
 }
 
-void cpu_qmod(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)%(*aCPUPt->vRB);
+void cpu_qmod(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)%(*cpu->RB);
 }
 
-void cpu_stb(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)|(1<<(*aCPUPt->vRB));
+void cpu_stb(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)|(1<<(*cpu->RB));
 }
 
-void cpu_clb(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)&(~(1<<(*aCPUPt->vRB)));
+void cpu_clb(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)&(~(1<<(*cpu->RB)));
 }
 
-void cpu_qnot(Risc256* aCPUPt){
-    *aCPUPt->vRA = ~(*aCPUPt->vRA);
+void cpu_qnot(Risc256* cpu){
+    *cpu->RA = ~(*cpu->RA);
 }
 
-void cpu_qand(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)&(*aCPUPt->vRB);
+void cpu_qand(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)&(*cpu->RB);
 }
 
-void cpu_qor(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)|(*aCPUPt->vRB);
+void cpu_qor(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)|(*cpu->RB);
 }
 
-void cpu_qxor(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)^(*aCPUPt->vRB);
+void cpu_qxor(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)^(*cpu->RB);
 }
 
-void cpu_qshl(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)<<(*aCPUPt->vRB);
+void cpu_qshl(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)<<(*cpu->RB);
 }
 
-void cpu_qshr(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)>>(*aCPUPt->vRB);
+void cpu_qshr(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)>>(*cpu->RB);
 }
 
 
@@ -312,81 +312,81 @@ void cpu_qshr(Risc256* aCPUPt){
 
 
 //
-//void cpu_qsin(Risc256* aCPUPt){
+//void cpu_qsin(Risc256* cpu){
 //
-//    CPUType lVal1 = (*aCPUPt->vRA);
-//    CPUType lVal2 = (*aCPUPt->vRB);
+//    CPUType lVal1 = (*cpu->RA);
+//    CPUType lVal2 = (*cpu->RB);
 //
 //    double lVal1d = cputype_to_float(lVal1);
 //    double lVal2d = cputype_to_float(lVal2);
 //
 //    double lRet = lVal2d*sin(lVal1d);
-//    *aCPUPt->vRA = float_to_cputype(lRet);
+//    *cpu->RA = float_to_cputype(lRet);
 //    
 //}
 //
-//void cpu_qcos(Risc256* aCPUPt){
+//void cpu_qcos(Risc256* cpu){
 //
-//    CPUType lVal1 = (*aCPUPt->vRA);
-//    CPUType lVal2 = (*aCPUPt->vRB);
+//    CPUType lVal1 = (*cpu->RA);
+//    CPUType lVal2 = (*cpu->RB);
 //
 //    double lVal1d = cputype_to_float(lVal1);
 //    double lVal2d = cputype_to_float(lVal2);
 //
 //    double lRet = lVal2d*cos(lVal1d);
-//    *aCPUPt->vRA = float_to_cputype(lRet);
+//    *cpu->RA = float_to_cputype(lRet);
 //    
 //}
 //
-//void cpu_qtan(Risc256* aCPUPt){
+//void cpu_qtan(Risc256* cpu){
 //
-//    CPUType lVal1 = (*aCPUPt->vRA);
-//    CPUType lVal2 = (*aCPUPt->vRB);
+//    CPUType lVal1 = (*cpu->RA);
+//    CPUType lVal2 = (*cpu->RB);
 //
 //    double lVal1d = cputype_to_float(lVal1);
 //    double lVal2d = cputype_to_float(lVal2);
 //
 //    double lRet = lVal2d*tan(lVal1d);
-//    *aCPUPt->vRA = float_to_cputype(lRet);
+//    *cpu->RA = float_to_cputype(lRet);
 //    
 //}
 //
-//void cpu_qasin(Risc256* aCPUPt){
+//void cpu_qasin(Risc256* cpu){
 //
-//    CPUType lVal1 = (*aCPUPt->vRA);
-//    CPUType lVal2 = (*aCPUPt->vRB);
+//    CPUType lVal1 = (*cpu->RA);
+//    CPUType lVal2 = (*cpu->RB);
 //
 //    double lVal1d = cputype_to_float(lVal1);
 //    double lVal2d = cputype_to_float(lVal2);
 //
 //    double lRet = lVal2d*asin(lVal1d);
-//    *aCPUPt->vRA = float_to_cputype(lRet);
+//    *cpu->RA = float_to_cputype(lRet);
 //    
 //}
 //
-//void cpu_qacos(Risc256* aCPUPt){
+//void cpu_qacos(Risc256* cpu){
 //
-//    CPUType lVal1 = (*aCPUPt->vRA);
-//    CPUType lVal2 = (*aCPUPt->vRB);
+//    CPUType lVal1 = (*cpu->RA);
+//    CPUType lVal2 = (*cpu->RB);
 //
 //    double lVal1d = cputype_to_float(lVal1);
 //    double lVal2d = cputype_to_float(lVal2);
 //
 //    double lRet = lVal2d*acos(lVal1d);
-//    *aCPUPt->vRA = float_to_cputype(lRet);
+//    *cpu->RA = float_to_cputype(lRet);
 //    
 //}
 //
-//void cpu_qatan2(Risc256* aCPUPt){
+//void cpu_qatan2(Risc256* cpu){
 //
-//    CPUType lVal1 = (*aCPUPt->vRA);
-//    CPUType lVal2 = (*aCPUPt->vRB);
+//    CPUType lVal1 = (*cpu->RA);
+//    CPUType lVal2 = (*cpu->RB);
 //
 //    double lVal1d = cputype_to_float(lVal1);
 //    double lVal2d = cputype_to_float(lVal2);
 //
 //    double lRet = atan2(lVal1d,lVal2d);
-//    *aCPUPt->vRA = float_to_cputype(lRet);
+//    *cpu->RA = float_to_cputype(lRet);
 //    
 //}
 
@@ -394,114 +394,114 @@ void cpu_qshr(Risc256* aCPUPt){
 // 0x3 - INC
 
 //
-//void cpu_inc_ra(Risc256* aCPUPt){
+//void cpu_inc_ra(Risc256* cpu){
 //        
-//    CPUType lVal1 = *aCPUPt->vRA;
+//    CPUType lVal1 = *cpu->RA;
 //
-//    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
+//    bool lASign = (*cpu->RA & SIGNBIT)!=0;
 //
 //    CPUType lRet = lVal1+1;
-//    *aCPUPt->vRA = lRet;
+//    *cpu->RA = lRet;
 //    
 //    bool lSign = (lRet & SIGNBIT)!=0;
 //
 //    /*Set flags*/
-//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//    CPUType lRFPt = *cpu->RS&CZOS_MASK;
 //
 //    lRFPt |= 
 //        (((lRet==0)?(Z_SET|C_SET):(0)) | 
 //        ((lSign)?(S_SET):(0)) |
 //        ((lSign != lASign)?(O_SET):(0)));
 //
-//    *aCPUPt->vRS = lRFPt;
+//    *cpu->RS = lRFPt;
 //            
 //}
 //
-//void cpu_inc_rb(Risc256* aCPUPt){
+//void cpu_inc_rb(Risc256* cpu){
 //        
-//    CPUType lVal1 = *aCPUPt->vRB;
+//    CPUType lVal1 = *cpu->RB;
 //
-//    bool lASign = (*aCPUPt->vRB & SIGNBIT)!=0;
+//    bool lASign = (*cpu->RB & SIGNBIT)!=0;
 //
 //    CPUType lRet = lVal1+1;
-//    *aCPUPt->vRB = lRet;
+//    *cpu->RB = lRet;
 //    
 //    bool lSign = (lRet & SIGNBIT)!=0;
 //
 //    /*Set flags*/
-//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//    CPUType lRFPt = *cpu->RS&CZOS_MASK;
 //
 //    lRFPt |= 
 //        (((lRet==0)?(Z_SET|C_SET):(0)) | 
 //        ((lSign)?(S_SET):(0)) |
 //        ((lSign != lASign)?(O_SET):(0)));
 //
-//    *aCPUPt->vRS = lRFPt;
+//    *cpu->RS = lRFPt;
 //            
 //}
 //
-//void cpu_inc_rc(Risc256* aCPUPt){
+//void cpu_inc_rc(Risc256* cpu){
 //        
-//    CPUType lVal1 = *aCPUPt->vRC;
+//    CPUType lVal1 = *cpu->RC;
 //
-//    bool lASign = (*aCPUPt->vRC & SIGNBIT)!=0;
+//    bool lASign = (*cpu->RC & SIGNBIT)!=0;
 //
 //    CPUType lRet = lVal1+1;
-//    *aCPUPt->vRC = lRet;
+//    *cpu->RC = lRet;
 //    
 //    bool lSign = (lRet & SIGNBIT)!=0;
 //
 //    /*Set flags*/
-//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//    CPUType lRFPt = *cpu->RS&CZOS_MASK;
 //
 //    lRFPt |= 
 //        (((lRet==0)?(Z_SET|C_SET):(0)) | 
 //        ((lSign)?(S_SET):(0)) |
 //        ((lSign != lASign)?(O_SET):(0)));
 //
-//    *aCPUPt->vRS = lRFPt;
+//    *cpu->RS = lRFPt;
 //            
 //}
 //
 //
-//void cpu_inc_ri(Risc256* aCPUPt){
+//void cpu_inc_ri(Risc256* cpu){
 //        
-//    CPUType lVal1 = *aCPUPt->vRI;
+//    CPUType lVal1 = *cpu->RI;
 //
-//    bool lASign = (*aCPUPt->vRI & SIGNBIT)!=0;
+//    bool lASign = (*cpu->RI & SIGNBIT)!=0;
 //
 //    CPUType lRet = lVal1+1;
-//    *aCPUPt->vRI = lRet;
+//    *cpu->RI = lRet;
 //    
 //    bool lSign = (lRet & SIGNBIT)!=0;
 //
 //    /*Set flags*/
-//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//    CPUType lRFPt = *cpu->RS&CZOS_MASK;
 //
 //    lRFPt |= 
 //        (((lRet==0)?(Z_SET|C_SET):(0)) | 
 //        ((lSign)?(S_SET):(0)) |
 //        ((lSign != lASign)?(O_SET):(0)));
 //
-//    *aCPUPt->vRS = lRFPt;
+//    *cpu->RS = lRFPt;
 //            
 //}
 //
-//void cpu_inci(Risc256* aCPUPt){
+//void cpu_inci(Risc256* cpu){
 //        
-//    CPUType lVal1 = *aCPUPt->vRA;
-//    CPUType lVal2 = *aCPUPt->vRI;
+//    CPUType lVal1 = *cpu->RA;
+//    CPUType lVal2 = *cpu->RI;
 //
-//    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
-//    bool lBSign = (*aCPUPt->vRI & SIGNBIT)!=0;
+//    bool lASign = (*cpu->RA & SIGNBIT)!=0;
+//    bool lBSign = (*cpu->RI & SIGNBIT)!=0;
 //
 //    CPUType lRet = lVal1+lVal2;
-//    *aCPUPt->vRA = lRet;
+//    *cpu->RA = lRet;
 //    
 //    bool lSign = (lRet & SIGNBIT)!=0;
 //
 //    /*Set flags*/
-//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//    CPUType lRFPt = *cpu->RS&CZOS_MASK;
 //
 //    lRFPt |= 
 //        (((lRet==0)?(Z_SET):(0)) | 
@@ -509,22 +509,22 @@ void cpu_qshr(Risc256* aCPUPt){
 //        ((lASign == lBSign && lSign != lASign)?(O_SET):(0)) |
 //        ((lVal2 > lRet)?(C_SET):(0)));
 //
-//    *aCPUPt->vRS = lRFPt;
+//    *cpu->RS = lRFPt;
 //            
 //}
 //
-//void cpu_incdws(Risc256* aCPUPt){
+//void cpu_incdws(Risc256* cpu){
 //        
-//    CPUType lVal1 = *aCPUPt->vRA;
+//    CPUType lVal1 = *cpu->RA;
 //
-//    bool lASign = (*aCPUPt->vRA & SIGNBIT)!=0;
+//    bool lASign = (*cpu->RA & SIGNBIT)!=0;
 //    CPUType lRet = lVal1+WORDSIZE;
-//    *aCPUPt->vRA = lRet;
+//    *cpu->RA = lRet;
 //    
 //    bool lSign = (lRet & SIGNBIT)!=0;
 //
 //    /*Set flags*/
-//    CPUType lRFPt = *aCPUPt->vRS&CZOS_MASK;
+//    CPUType lRFPt = *cpu->RS&CZOS_MASK;
 //
 //    lRFPt |= 
 //        (((lRet==0)?(Z_SET):(0)) | 
@@ -532,72 +532,72 @@ void cpu_qshr(Risc256* aCPUPt){
 //        ((lSign != lASign)?(O_SET):(0)) |
 //        ((lVal1 > lRet)?(C_SET):(0)));
 //
-//    *aCPUPt->vRS = lRFPt;
+//    *cpu->RS = lRFPt;
 //            
 //}
 
 
-void cpu_qinc(Risc256* aCPUPt, CPUType* aRet){
+void cpu_qinc(Risc256* cpu, CPUType* aRet){
     *aRet = (*aRet)+1;
 }
 
-void cpu_qinci(Risc256* aCPUPt, CPUType* aRet){
-    *aRet = (*aRet)+(*aCPUPt->vRI);
+void cpu_qinci(Risc256* cpu, CPUType* aRet){
+    *aRet = (*aRet)+(*cpu->RI);
 }
 
-void cpu_qincaddr(Risc256* aCPUPt, CPUType* aRetH, CPUType* aRetL){
+void cpu_qincaddr(Risc256* cpu, CPUType* aRetH, CPUType* aRetL){
     *aRetL = (*aRetL)+1;
     *aRetH = (*aRetH)+(*aRetL==0)*1;
 }
 
 //0x30
-void cpu_qira(Risc256* aCPUPt){
-    cpu_qinc(aCPUPt,aCPUPt->vRA);
+void cpu_qira(Risc256* cpu){
+    cpu_qinc(cpu,cpu->RA);
 }
 
 //0x31
-void cpu_qirb(Risc256* aCPUPt){
-    cpu_qinc(aCPUPt,aCPUPt->vRB);
+void cpu_qirb(Risc256* cpu){
+    cpu_qinc(cpu,cpu->RB);
 }
 
 //0x32
-void cpu_qirc(Risc256* aCPUPt){
-    cpu_qinc(aCPUPt,aCPUPt->vRC);
+void cpu_qirc(Risc256* cpu){
+    cpu_qinc(cpu,cpu->RC);
 }
 
 //0x33
-void cpu_qird(Risc256* aCPUPt){
-    cpu_qincaddr(aCPUPt,aCPUPt->vRDH,aCPUPt->vRDL);
+void cpu_qird(Risc256* cpu){
+    cpu_qincaddr(cpu,cpu->RDH,cpu->RDL);
 }
 
 //0x24
-void cpu_qire(Risc256* aCPUPt){
-    cpu_qincaddr(aCPUPt,aCPUPt->vREH,aCPUPt->vREL);
+void cpu_qire(Risc256* cpu){
+    cpu_qincaddr(cpu,cpu->REH,cpu->REL);
 }
 
 //0x25
-void cpu_qirrh(Risc256* aCPUPt){
-    cpu_qinc(aCPUPt,aCPUPt->vRRH);
+void cpu_qirrh(Risc256* cpu){
+    cpu_qinc(cpu,cpu->RRH);
 }
 
 //0x26
-void cpu_qirrl(Risc256* aCPUPt){
-    cpu_qinc(aCPUPt,aCPUPt->vRRL);
+void cpu_qirrl(Risc256* cpu){
+    cpu_qinc(cpu,cpu->RRL);
 }
 
 //0x27
-void cpu_qirai(Risc256* aCPUPt){
-    cpu_qinci(aCPUPt,aCPUPt->vRA);
+void cpu_qirai(Risc256* cpu){
+    cpu_qinci(cpu,cpu->RA);
 }
 
 //0x28
-void cpu_qirbi(Risc256* aCPUPt){
-    cpu_qinci(aCPUPt,aCPUPt->vRB);
+void cpu_qirbi(Risc256* cpu){
+    cpu_qinci(cpu,cpu->RB);
 }
 
 //0x29
-void cpu_qirci(Risc256* aCPUPt){
-    cpu_qinci(aCPUPt,aCPUPt->vRC);
+void cpu_qirci(Risc256* cpu){
+    cpu_qinci(cpu,cpu->RC);
 }
 
 //=========================================================//
@@ -620,171 +620,171 @@ void cpu_qirci(Risc256* aCPUPt){
 //=========================================================//
 // 0x03 - DEC
 
-void cpu_qdec(Risc256* aCPUPt, CPUType* aRet){
+void cpu_qdec(Risc256* cpu, CPUType* aRet){
     *aRet = (*aRet)-1;
 }
 
-void cpu_qdeci(Risc256* aCPUPt, CPUType* aRet){
-    *aRet = (*aRet)-(*aCPUPt->vRI);
+void cpu_qdeci(Risc256* cpu, CPUType* aRet){
+    *aRet = (*aRet)-(*cpu->RI);
 }
 
-void cpu_qdecaddr(Risc256* aCPUPt, CPUType* aRetH, CPUType* aRetL){
+void cpu_qdecaddr(Risc256* cpu, CPUType* aRetH, CPUType* aRetL){
     *aRetL = (*aRetL)-1;
     *aRetH = (*aRetH)-(*aRetL==0)*1;
 }
 
-void cpu_qdra(Risc256* aCPUPt){
-    cpu_qdec(aCPUPt,aCPUPt->vRA);
+void cpu_qdra(Risc256* cpu){
+    cpu_qdec(cpu,cpu->RA);
 }
 
-void cpu_qdrb(Risc256* aCPUPt){
-    cpu_qdec(aCPUPt,aCPUPt->vRB);
+void cpu_qdrb(Risc256* cpu){
+    cpu_qdec(cpu,cpu->RB);
 }
 
-void cpu_qdrc(Risc256* aCPUPt){
-    cpu_qdec(aCPUPt,aCPUPt->vRC);
+void cpu_qdrc(Risc256* cpu){
+    cpu_qdec(cpu,cpu->RC);
 }
 
-void cpu_qdrd(Risc256* aCPUPt){
-    cpu_qdecaddr(aCPUPt,aCPUPt->vRDH,aCPUPt->vRDL);
+void cpu_qdrd(Risc256* cpu){
+    cpu_qdecaddr(cpu,cpu->RDH,cpu->RDL);
 }
 
-void cpu_qdre(Risc256* aCPUPt){
-    cpu_qdecaddr(aCPUPt,aCPUPt->vREH,aCPUPt->vREL);
+void cpu_qdre(Risc256* cpu){
+    cpu_qdecaddr(cpu,cpu->REH,cpu->REL);
 }
 
-void cpu_qdrrh(Risc256* aCPUPt){
-    cpu_qdec(aCPUPt,aCPUPt->vRRH);
+void cpu_qdrrh(Risc256* cpu){
+    cpu_qdec(cpu,cpu->RRH);
 }
 
-void cpu_qdrrl(Risc256* aCPUPt){
-    cpu_qdec(aCPUPt,aCPUPt->vRRL);
+void cpu_qdrrl(Risc256* cpu){
+    cpu_qdec(cpu,cpu->RRL);
 }
 
-void cpu_qdrai(Risc256* aCPUPt){
-    cpu_qdeci(aCPUPt,aCPUPt->vRA);
+void cpu_qdrai(Risc256* cpu){
+    cpu_qdeci(cpu,cpu->RA);
 }
 
-void cpu_qdrbi(Risc256* aCPUPt){
-    cpu_qdeci(aCPUPt,aCPUPt->vRB);
+void cpu_qdrbi(Risc256* cpu){
+    cpu_qdeci(cpu,cpu->RB);
 }
 
-void cpu_qdrci(Risc256* aCPUPt){
-    cpu_qdeci(aCPUPt,aCPUPt->vRC);
+void cpu_qdrci(Risc256* cpu){
+    cpu_qdeci(cpu,cpu->RC);
 }
 
 //=========================================================//
 // 0x04 - CMP
 
 //40
-void cpu_qgt(Risc256* aCPUPt){
-    *aCPUPt->vRF = (*aCPUPt->vRA)>(*aCPUPt->vRB);
+void cpu_qgt(Risc256* cpu){
+    *cpu->RF = (*cpu->RA)>(*cpu->RB);
 }
 
 //41
-void cpu_qlt(Risc256* aCPUPt){
-    *aCPUPt->vRF = (*aCPUPt->vRA)<(*aCPUPt->vRB);
+void cpu_qlt(Risc256* cpu){
+    *cpu->RF = (*cpu->RA)<(*cpu->RB);
 }
 
 //42
-void cpu_qeq(Risc256* aCPUPt){
-    *aCPUPt->vRF = (*aCPUPt->vRA)==(*aCPUPt->vRB);
+void cpu_qeq(Risc256* cpu){
+    *cpu->RF = (*cpu->RA)==(*cpu->RB);
 }
 
 //43
-void cpu_qgeq(Risc256* aCPUPt){
-    *aCPUPt->vRF = (*aCPUPt->vRA)>=(*aCPUPt->vRB);
+void cpu_qgeq(Risc256* cpu){
+    *cpu->RF = (*cpu->RA)>=(*cpu->RB);
 }
 
 //44
-void cpu_qleq(Risc256* aCPUPt){
-    *aCPUPt->vRF = (*aCPUPt->vRA)<=(*aCPUPt->vRB);
+void cpu_qleq(Risc256* cpu){
+    *cpu->RF = (*cpu->RA)<=(*cpu->RB);
 }
 
 //45
-void cpu_qneq(Risc256* aCPUPt){
-    *aCPUPt->vRF = (*aCPUPt->vRA)!=(*aCPUPt->vRB);
+void cpu_qneq(Risc256* cpu){
+    *cpu->RF = (*cpu->RA)!=(*cpu->RB);
 }
 
 //46
-void cpu_qmaf(Risc256* aCPUPt){
-    *aCPUPt->vRA = (*aCPUPt->vRA)*(*aCPUPt->vRF);
+void cpu_qmaf(Risc256* cpu){
+    *cpu->RA = (*cpu->RA)*(*cpu->RF);
 }
 
 //47
-void cpu_qmbf(Risc256* aCPUPt){
-    *aCPUPt->vRB = (*aCPUPt->vRB)*(*aCPUPt->vRF);
+void cpu_qmbf(Risc256* cpu){
+    *cpu->RB = (*cpu->RB)*(*cpu->RF);
 }
 
 //48
-void cpu_qfgt(Risc256* aCPUPt){
+void cpu_qfgt(Risc256* cpu){
 
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
+    CPUType lVal1 = (*cpu->RA);
+    CPUType lVal2 = (*cpu->RB);
     double lVal1d = cputype_to_float(lVal1);
     double lVal2d = cputype_to_float(lVal2);
     
-    *aCPUPt->vRF = lVal1d>lVal2d;
+    *cpu->RF = lVal1d>lVal2d;
     
 }
 
 //49
-void cpu_qflt(Risc256* aCPUPt){
+void cpu_qflt(Risc256* cpu){
 
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
+    CPUType lVal1 = (*cpu->RA);
+    CPUType lVal2 = (*cpu->RB);
     double lVal1d = cputype_to_float(lVal1);
     double lVal2d = cputype_to_float(lVal2);
     
-    *aCPUPt->vRF = lVal1d<lVal2d;
+    *cpu->RF = lVal1d<lVal2d;
     
 }
 
 //4A
-void cpu_qfeq(Risc256* aCPUPt){
+void cpu_qfeq(Risc256* cpu){
 
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
+    CPUType lVal1 = (*cpu->RA);
+    CPUType lVal2 = (*cpu->RB);
     double lVal1d = cputype_to_float(lVal1);
     double lVal2d = cputype_to_float(lVal2);
     
-    *aCPUPt->vRF = lVal1d==lVal2d;
+    *cpu->RF = lVal1d==lVal2d;
     
 }
 
 //4B
-void cpu_qfgeq(Risc256* aCPUPt){
+void cpu_qfgeq(Risc256* cpu){
 
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
+    CPUType lVal1 = (*cpu->RA);
+    CPUType lVal2 = (*cpu->RB);
     double lVal1d = cputype_to_float(lVal1);
     double lVal2d = cputype_to_float(lVal2);
     
-    *aCPUPt->vRF = lVal1d>=lVal2d;
+    *cpu->RF = lVal1d>=lVal2d;
     
 }
 
 //4C
-void cpu_qfleq(Risc256* aCPUPt){
+void cpu_qfleq(Risc256* cpu){
 
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
+    CPUType lVal1 = (*cpu->RA);
+    CPUType lVal2 = (*cpu->RB);
     double lVal1d = cputype_to_float(lVal1);
     double lVal2d = cputype_to_float(lVal2);
     
-    *aCPUPt->vRF = lVal1d<=lVal2d;
+    *cpu->RF = lVal1d<=lVal2d;
     
 }
 
 //4D
-void cpu_qfneq(Risc256* aCPUPt){
+void cpu_qfneq(Risc256* cpu){
 
-    CPUType lVal1 = (*aCPUPt->vRA);
-    CPUType lVal2 = (*aCPUPt->vRB);
+    CPUType lVal1 = (*cpu->RA);
+    CPUType lVal2 = (*cpu->RB);
     double lVal1d = cputype_to_float(lVal1);
     double lVal2d = cputype_to_float(lVal2);
     
-    *aCPUPt->vRF = lVal1d!=lVal2d;
+    *cpu->RF = lVal1d!=lVal2d;
     
 }
 
@@ -798,339 +798,339 @@ void cpu_qfneq(Risc256* aCPUPt){
 
 //=========================================================//
 // 0xAX - Temp Push
-void cpu_tps_all(Risc256* aCPUPt){
-    *aCPUPt->vTP -= WORDSIZE*16;    //16 Registers
-    aCPUPt->vTPAddr = aCPUPt->vMemByte+(*aCPUPt->vTP);
-    memcpy(aCPUPt->vSPAddr+1, aCPUPt->vRA, WORDSIZE*16);    
+void cpu_tps_all(Risc256* cpu){
+    *cpu->TP -= WORDSIZE*16;    //16 Registers
+    cpu->TPAddr = cpu-> MemByte+(*cpu->TP);
+    memcpy(cpu->SPAddr+1, cpu->RA, WORDSIZE*16);    
 }
 
-void cpu_tps(Risc256* aCPUPt, CPUType* aReg){
-    *(aCPUPt->vSPAddr) = (*aReg);
-    *aCPUPt->vSP -= WORDSIZE;
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
+void cpu_tps(Risc256* cpu, CPUType* aReg){
+    *(cpu->SPAddr) = (*aReg);
+    *cpu->SP -= WORDSIZE;
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
 }
 
 
-void cpu_tpsa(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRA);
+void cpu_tpsa(Risc256* cpu){
+    cpu_tps(cpu, cpu->RA);
 }
 
-void cpu_tpsb(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRB);
+void cpu_tpsb(Risc256* cpu){
+    cpu_tps(cpu, cpu->RB);
 }
 
-void cpu_tpsc(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRC);
+void cpu_tpsc(Risc256* cpu){
+    cpu_tps(cpu, cpu->RC);
 }
 
-void cpu_tpsdh(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRDH);
+void cpu_tpsdh(Risc256* cpu){
+    cpu_tps(cpu, cpu->RDH);
 }
 
-void cpu_tpsdl(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRDL);
+void cpu_tpsdl(Risc256* cpu){
+    cpu_tps(cpu, cpu->RDL);
 }
 
-void cpu_tpseh(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vREH);
+void cpu_tpseh(Risc256* cpu){
+    cpu_tps(cpu, cpu->REH);
 }
 
-void cpu_tpsel(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vREL);
+void cpu_tpsel(Risc256* cpu){
+    cpu_tps(cpu, cpu->REL);
 }
 
-void cpu_tpstp(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vTP);
+void cpu_tpstp(Risc256* cpu){
+    cpu_tps(cpu, cpu->TP);
 }
 
-void cpu_tpssp(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vSP);
+void cpu_tpssp(Risc256* cpu){
+    cpu_tps(cpu, cpu->SP);
 }
 
-void cpu_tpsi(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRI);
+void cpu_tpsi(Risc256* cpu){
+    cpu_tps(cpu, cpu->RI);
 }
 
-void cpu_tpspch(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vPCH);
+void cpu_tpspch(Risc256* cpu){
+    cpu_tps(cpu, cpu->PCH);
 }
 
-void cpu_tpspcl(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vPCL);
+void cpu_tpspcl(Risc256* cpu){
+    cpu_tps(cpu, cpu->PCL);
 }
 
-void cpu_tpsf(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRF);
+void cpu_tpsf(Risc256* cpu){
+    cpu_tps(cpu, cpu->RF);
 }
 
-void cpu_tpss(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRS);
+void cpu_tpss(Risc256* cpu){
+    cpu_tps(cpu, cpu->RS);
 }
 
-void cpu_tpsrh(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRRH);
+void cpu_tpsrh(Risc256* cpu){
+    cpu_tps(cpu, cpu->RRH);
 }
 
-void cpu_tpsrl(Risc256* aCPUPt){
-    cpu_tps(aCPUPt, aCPUPt->vRRL);
+void cpu_tpsrl(Risc256* cpu){
+    cpu_tps(cpu, cpu->RRL);
 }
 
 //=========================================================//
 // 0xBX - Temp Pop
 
 //Pop all registers from temp stack
-void cpu_tpp_all(Risc256* aCPUPt){
-    memcpy(aCPUPt->vRA, aCPUPt->vTPAddr+1, WORDSIZE*16);
-    *aCPUPt->vTP += WORDSIZE*16;
-    aCPUPt->vTPAddr = aCPUPt->vMemByte+(*aCPUPt->vTP);
+void cpu_tpp_all(Risc256* cpu){
+    memcpy(cpu->RA, cpu->TPAddr+1, WORDSIZE*16);
+    *cpu->TP += WORDSIZE*16;
+    cpu->TPAddr = cpu-> MemByte+(*cpu->TP);
     
 }
 
 //Pop single register from temp stack
-void cpu_tpp(Risc256* aCPUPt, CPUType *aReg){
-    *aCPUPt->vTP += WORDSIZE;
-    aCPUPt->vTPAddr = aCPUPt->vMemByte+(*aCPUPt->vTP);
-    *(aReg) = *(aCPUPt->vTPAddr);
+void cpu_tpp(Risc256* cpu, CPUType *aReg){
+    *cpu->TP += WORDSIZE;
+    cpu->TPAddr = cpu-> MemByte+(*cpu->TP);
+    *(aReg) = *(cpu->TPAddr);
     
 }
 
-void cpu_tppa(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRA);
+void cpu_tppa(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RA);
 }
 
-void cpu_tppb(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRB);
+void cpu_tppb(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RB);
 }
 
-void cpu_tppc(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRC);
+void cpu_tppc(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RC);
 }
 
-void cpu_tppdh(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRDH);
+void cpu_tppdh(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RDH);
 }
 
-void cpu_tppdl(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRDL);
+void cpu_tppdl(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RDL);
 }
 
-void cpu_tppeh(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vREH);
+void cpu_tppeh(Risc256* cpu){
+    cpu_tpp(cpu, cpu->REH);
 }
 
-void cpu_tppel(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vREL);
+void cpu_tppel(Risc256* cpu){
+    cpu_tpp(cpu, cpu->REL);
 }
 
-void cpu_tpptp(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vTP);
+void cpu_tpptp(Risc256* cpu){
+    cpu_tpp(cpu, cpu->TP);
 }
 
-void cpu_tppsp(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vSP);
+void cpu_tppsp(Risc256* cpu){
+    cpu_tpp(cpu, cpu->SP);
 }
 
-void cpu_tppi(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRI);
+void cpu_tppi(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RI);
 }
 
-void cpu_tpppch(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vPCH);
+void cpu_tpppch(Risc256* cpu){
+    cpu_tpp(cpu, cpu->PCH);
 }
 
-void cpu_tpppcl(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vPCL);
+void cpu_tpppcl(Risc256* cpu){
+    cpu_tpp(cpu, cpu->PCL);
 }
 
-void cpu_tppf(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRF);
+void cpu_tppf(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RF);
 }
 
-void cpu_tpps(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRS);
+void cpu_tpps(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RS);
 }
 
-void cpu_tpprh(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRRH);
+void cpu_tpprh(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RRH);
 }
 
-void cpu_tpprl(Risc256* aCPUPt){
-    cpu_tpp(aCPUPt, aCPUPt->vRRL);
+void cpu_tpprl(Risc256* cpu){
+    cpu_tpp(cpu, cpu->RRL);
 }
 
 
 //=========================================================//
 // 0xCX - Push
-void cpu_psh_int(Risc256* aCPUPt){
-    *aCPUPt->vSP += WORDSIZE*16;    //16 Registers
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
-    memcpy(aCPUPt->vSPAddr+1, aCPUPt->vRA, WORDSIZE*16);
+void cpu_psh_int(Risc256* cpu){
+    *cpu->SP += WORDSIZE*16;    //16 Registers
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
+    memcpy(cpu->SPAddr+1, cpu->RA, WORDSIZE*16);
     
 }
 
-void cpu_psh_call(Risc256* aCPUPt){
-    *aCPUPt->vSP += WORDSIZE*14;    //16 Registers
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
-    memcpy(aCPUPt->vSPAddr+1, aCPUPt->vRA, WORDSIZE*14);
+void cpu_psh_call(Risc256* cpu){
+    *cpu->SP += WORDSIZE*14;    //16 Registers
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
+    memcpy(cpu->SPAddr+1, cpu->RA, WORDSIZE*14);
     
 }
 
-void cpu_psh(Risc256* aCPUPt, CPUType* aReg){
-    *(aCPUPt->vSPAddr) = (*aReg);
-    *aCPUPt->vSP += WORDSIZE;
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
+void cpu_psh(Risc256* cpu, CPUType* aReg){
+    *(cpu->SPAddr) = (*aReg);
+    *cpu->SP += WORDSIZE;
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
 }
 
-void cpu_psha(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRA);
+void cpu_psha(Risc256* cpu){
+    cpu_psh(cpu, cpu->RA);
 }
 
-void cpu_pshb(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRB);
+void cpu_pshb(Risc256* cpu){
+    cpu_psh(cpu, cpu->RB);
 }
 
-void cpu_pshc(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRC);
+void cpu_pshc(Risc256* cpu){
+    cpu_psh(cpu, cpu->RC);
 }
 
-void cpu_pshdh(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRDH);
+void cpu_pshdh(Risc256* cpu){
+    cpu_psh(cpu, cpu->RDH);
 }
 
-void cpu_pshdl(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRDL);
+void cpu_pshdl(Risc256* cpu){
+    cpu_psh(cpu, cpu->RDL);
 }
 
-void cpu_psheh(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vREH);
+void cpu_psheh(Risc256* cpu){
+    cpu_psh(cpu, cpu->REH);
 }
 
-void cpu_pshel(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vREL);
+void cpu_pshel(Risc256* cpu){
+    cpu_psh(cpu, cpu->REL);
 }
 
-void cpu_pshtp(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vTP);
+void cpu_pshtp(Risc256* cpu){
+    cpu_psh(cpu, cpu->TP);
 }
 
-void cpu_pshsp(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vSP);
+void cpu_pshsp(Risc256* cpu){
+    cpu_psh(cpu, cpu->SP);
 }
 
-void cpu_pshi(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRI);
+void cpu_pshi(Risc256* cpu){
+    cpu_psh(cpu, cpu->RI);
 }
 
-void cpu_pshpch(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vPCH);
+void cpu_pshpch(Risc256* cpu){
+    cpu_psh(cpu, cpu->PCH);
 }
 
-void cpu_pshpcl(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vPCL);
+void cpu_pshpcl(Risc256* cpu){
+    cpu_psh(cpu, cpu->PCL);
 }
 
-void cpu_pshf(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRF);
+void cpu_pshf(Risc256* cpu){
+    cpu_psh(cpu, cpu->RF);
 }
 
-void cpu_pshs(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRS);
+void cpu_pshs(Risc256* cpu){
+    cpu_psh(cpu, cpu->RS);
 }
 
-void cpu_pshrh(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRRH);
+void cpu_pshrh(Risc256* cpu){
+    cpu_psh(cpu, cpu->RRH);
 }
 
-void cpu_pshrl(Risc256* aCPUPt){
-    cpu_psh(aCPUPt, aCPUPt->vRRL);
+void cpu_pshrl(Risc256* cpu){
+    cpu_psh(cpu, cpu->RRL);
 }
 
 //=========================================================//
 // 0xDX - Pop
 
-void cpu_pop_int(Risc256* aCPUPt){
-    memcpy(aCPUPt->vRA, aCPUPt->vSPAddr+1, WORDSIZE*16);
-    *aCPUPt->vSP += WORDSIZE*16;
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
+void cpu_pop_int(Risc256* cpu){
+    memcpy(cpu->RA, cpu->SPAddr+1, WORDSIZE*16);
+    *cpu->SP += WORDSIZE*16;
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
     
 }
 
-void cpu_pop_call(Risc256* aCPUPt){
-    memcpy(aCPUPt->vRA, aCPUPt->vSPAddr+1, WORDSIZE*14);
-    *aCPUPt->vSP += WORDSIZE*14;
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
+void cpu_pop_call(Risc256* cpu){
+    memcpy(cpu->RA, cpu->SPAddr+1, WORDSIZE*14);
+    *cpu->SP += WORDSIZE*14;
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
     
 }
 
-void cpu_pop(Risc256* aCPUPt, CPUType *aReg){
-    *aCPUPt->vSP += WORDSIZE;
-    aCPUPt->vSPAddr = aCPUPt->vMemByte+(*aCPUPt->vSP);
-    *(aReg) = *(aCPUPt->vSPAddr);
+void cpu_pop(Risc256* cpu, CPUType *aReg){
+    *cpu->SP += WORDSIZE;
+    cpu->SPAddr = cpu-> MemByte+(*cpu->SP);
+    *(aReg) = *(cpu->SPAddr);
     
 }
 
-void cpu_popa(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRA);
+void cpu_popa(Risc256* cpu){
+    cpu_pop(cpu, cpu->RA);
 }
 
-void cpu_popb(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRB);
+void cpu_popb(Risc256* cpu){
+    cpu_pop(cpu, cpu->RB);
 }
 
-void cpu_popc(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRC);
+void cpu_popc(Risc256* cpu){
+    cpu_pop(cpu, cpu->RC);
 }
 
-void cpu_popdh(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRDH);
+void cpu_popdh(Risc256* cpu){
+    cpu_pop(cpu, cpu->RDH);
 }
 
-void cpu_popdl(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRDL);
+void cpu_popdl(Risc256* cpu){
+    cpu_pop(cpu, cpu->RDL);
 }
 
-void cpu_popeh(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vREH);
+void cpu_popeh(Risc256* cpu){
+    cpu_pop(cpu, cpu->REH);
 }
 
-void cpu_popel(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vREL);
+void cpu_popel(Risc256* cpu){
+    cpu_pop(cpu, cpu->REL);
 }
 
-void cpu_poptp(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vTP);
+void cpu_poptp(Risc256* cpu){
+    cpu_pop(cpu, cpu->TP);
 }
 
-void cpu_popsp(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vSP);
+void cpu_popsp(Risc256* cpu){
+    cpu_pop(cpu, cpu->SP);
 }
 
-void cpu_popi(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRI);
+void cpu_popi(Risc256* cpu){
+    cpu_pop(cpu, cpu->RI);
 }
 
-void cpu_poppch(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vPCH);
+void cpu_poppch(Risc256* cpu){
+    cpu_pop(cpu, cpu->PCH);
 }
 
-void cpu_poppcl(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vPCL);
+void cpu_poppcl(Risc256* cpu){
+    cpu_pop(cpu, cpu->PCL);
 }
 
-void cpu_popf(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRF);
+void cpu_popf(Risc256* cpu){
+    cpu_pop(cpu, cpu->RF);
 }
 
-void cpu_pops(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRS);
+void cpu_pops(Risc256* cpu){
+    cpu_pop(cpu, cpu->RS);
 }
 
-void cpu_poprh(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRRH);
+void cpu_poprh(Risc256* cpu){
+    cpu_pop(cpu, cpu->RRH);
 }
 
-void cpu_poprl(Risc256* aCPUPt){
-    cpu_pop(aCPUPt, aCPUPt->vRRL);
+void cpu_poprl(Risc256* cpu){
+    cpu_pop(cpu, cpu->RRL);
 }
 
 
@@ -1142,7 +1142,7 @@ void cpu_poprl(Risc256* aCPUPt){
 //=========================================================//
 // 0xFX - Set/clear flags
 
-void push_registers(Risc256* aCPUPt){
+void push_registers(Risc256* cpu){
     
     
     
@@ -1151,18 +1151,18 @@ void push_registers(Risc256* aCPUPt){
 //
 //void cpu_clrIF(Risc256* cpu){
 //    
-//    if((*cpu->vRS & IF_SET)!=0){
+//    if((*cpu->RS & IF_SET)!=0){
 //
-//        //printf("Before POP: %lu %lu\n",*aCPUPt->vRegisters->vRF, *aCPUPt->vRegisters->vPC);
-//        *cpu->vSP += cpu->vMemSize;
-//        *cpu->vRF = *((CPUType*)(cpu->vMemByte+*cpu->vSP));
+//        //printf("Before POP: %lu %lu\n",*cpu->REgisters->RF, *cpu->REgisters->PC);
+//        *cpu->SP += cpu->MemSize;
+//        *cpu->RF = *((CPUType*)(cpu-> MemByte+*cpu->SP));
 //
-//        *cpu->vSP += cpu->vMemSize;
-//        *cpu->vPC = *((CPUType*)(cpu->vMemByte+*cpu->vSP));
-//        (*cpu->vPC)--;
+//        *cpu->SP += cpu->MemSize;
+//        *cpu->PC = *((CPUType*)(cpu-> MemByte+*cpu->SP));
+//        (*cpu->PC)--;
 //
-//        *cpu->vRS &= IF_CLR;
+//        *cpu->RS &= IF_CLR;
 //
-//        //printf("After POP: %lu %lu\n",*aCPUPt->vRegisters->vRF, *aCPUPt->vRegisters->vPC);
+//        //printf("After POP: %lu %lu\n",*cpu->REgisters->RF, *cpu->REgisters->PC);
 //    }
 //}

@@ -1,75 +1,75 @@
 #include "CPU.h"
 
-void cpu_mov_ra_rr(Risc256* aCPUPt) {
-    memcpy(aCPUPt->vRA, aCPUPt->vRR, ADDRSIZE);
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_ra_rr(Risc256* cpu) {
+    memcpy(cpu->RA, cpu->RR, ADDRSIZE);
+    memset(cpu->RR, 0, ADDRSIZE);
 }
 
-void cpu_mov_rb_rr(Risc256* aCPUPt) {
-    memcpy(aCPUPt->vRB, aCPUPt->vRR, ADDRSIZE);
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_rb_rr(Risc256* cpu) {
+    memcpy(cpu->RB, cpu->RR, ADDRSIZE);
+    memset(cpu->RR, 0, ADDRSIZE);
 }
 
-void cpu_mov_rc_rr(Risc256* aCPUPt) {
-    memcpy(aCPUPt->vRC, aCPUPt->vRR, ADDRSIZE);
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_rc_rr(Risc256* cpu) {
+    memcpy(cpu->RC, cpu->RR, ADDRSIZE);
+    memset(cpu->RR, 0, ADDRSIZE);
 }
 
-void cpu_mov_rd_rr(Risc256* aCPUPt) {
-    memcpy((CPUType*)aCPUPt->vRD, (CPUType*)aCPUPt->vRR, ADDRSIZE);
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_rd_rr(Risc256* cpu) {
+    memcpy((CPUType*)cpu->RD, (CPUType*)cpu->RR, ADDRSIZE);
+    memset(cpu->RR, 0, ADDRSIZE);
 }
 
-void cpu_mov_re_rr(Risc256* aCPUPt) {
-    memcpy((CPUType*)aCPUPt->vRE, (CPUType*)aCPUPt->vRR, ADDRSIZE);
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_re_rr(Risc256* cpu) {
+    memcpy((CPUType*)cpu->RE, (CPUType*)cpu->RR, ADDRSIZE);
+    memset(cpu->RR, 0, ADDRSIZE);
 }
 
-void cpu_mov_ri_rr(Risc256* aCPUPt) {
-    memcpy(aCPUPt->vRI, aCPUPt->vRR, ADDRSIZE);
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_ri_rr(Risc256* cpu) {
+    memcpy(cpu->RI, cpu->RR, ADDRSIZE);
+    memset(cpu->RR, 0, ADDRSIZE);
 }
 
-void cpu_mov_rr_wordsize(Risc256* aCPUPt) {
-    *aCPUPt->vRR = WORDSIZE;
+void cpu_mov_rr_wordsize(Risc256* cpu) {
+    *cpu->RR = WORDSIZE;
 }
 
-void cpu_mov_re_re(Risc256* aCPUPt) {
-    if (is_iopl_authorized(aCPUPt, *aCPUPt->vRE)) {
-        memcpy((CPUType*)aCPUPt->vRE, aCPUPt->vMemByte + *aCPUPt->vRE, ADDRSIZE);
+void cpu_mov_re_re(Risc256* cpu) {
+    if (is_iopl_authorized(cpu, *cpu->RE)) {
+        memcpy((CPUType*)cpu->RE, cpu-> MemByte + *cpu->RE, ADDRSIZE);
     }
 }
 
-void cpu_mov_rd_rd(Risc256* aCPUPt) {
-    if (is_iopl_authorized(aCPUPt, *aCPUPt->vRD)) {
-        memcpy((CPUType*)aCPUPt->vRD, aCPUPt->vMemByte + *aCPUPt->vRD, ADDRSIZE);
+void cpu_mov_rd_rd(Risc256* cpu) {
+    if (is_iopl_authorized(cpu, *cpu->RD)) {
+        memcpy((CPUType*)cpu->RD, cpu-> MemByte + *cpu->RD, ADDRSIZE);
     }
 }
 
-void cpu_mov_ra_0(Risc256* aCPUPt) {
-    memset(aCPUPt->vRA, 0, WORDSIZE);
+void cpu_mov_ra_0(Risc256* cpu) {
+    memset(cpu->RA, 0, WORDSIZE);
 }
 
-void cpu_mov_rb_0(Risc256* aCPUPt) {
-    memset(aCPUPt->vRB, 0, WORDSIZE);
+void cpu_mov_rb_0(Risc256* cpu) {
+    memset(cpu->RB, 0, WORDSIZE);
 }
 
-void cpu_mov_rc_0(Risc256* aCPUPt) {
-    memset(aCPUPt->vRC, 0, WORDSIZE);
+void cpu_mov_rc_0(Risc256* cpu) {
+    memset(cpu->RC, 0, WORDSIZE);
 }
 
-void cpu_mov_rd_0(Risc256* aCPUPt) {
-    memset((CPUType*)aCPUPt->vRD, 0, ADDRSIZE);
+void cpu_mov_rd_0(Risc256* cpu) {
+    memset((CPUType*)cpu->RD, 0, ADDRSIZE);
 }
 
-void cpu_mov_re_0(Risc256* aCPUPt) {
-    memset((CPUType*)aCPUPt->vRE, 0, ADDRSIZE);
+void cpu_mov_re_0(Risc256* cpu) {
+    memset((CPUType*)cpu->RE, 0, ADDRSIZE);
 }
 
-void cpu_mov_ri_0(Risc256* aCPUPt) {
-    memset(aCPUPt->vRI, 0, WORDSIZE);
+void cpu_mov_ri_0(Risc256* cpu) {
+    memset(cpu->RI, 0, WORDSIZE);
 }
 
-void cpu_mov_rr_0(Risc256* aCPUPt) {
-    memset(aCPUPt->vRR, 0, ADDRSIZE);
+void cpu_mov_rr_0(Risc256* cpu) {
+    memset(cpu->RR, 0, ADDRSIZE);
 }

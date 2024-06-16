@@ -205,7 +205,7 @@ void run_tests(test_func* tests, int num_tests, float* count, float* total, cons
 }
 
 int check_flags(Risc256* cpu, CPUType expected_flags) {
-    return (*cpu->vRS & expected_flags) == expected_flags;
+    return (*cpu->RS & expected_flags) == expected_flags;
 }
 
 int check_value(CPUType actual, CPUType expected) {

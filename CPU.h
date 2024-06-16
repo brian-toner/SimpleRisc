@@ -152,132 +152,132 @@ typedef unsigned char bool;
 
 
 typedef struct {
-    unsigned char* vMemByte; // Memory array (byte-level access)
-    CPUType* vMem;          // Memory array (CPUType-level access)
+    unsigned char*  MemByte; // Memory array (byte-level access)
+    CPUType* Mem;          // Memory array (CPUType-level access)
 
-    size_t vMemByteSize;    // Size of memory in bytes
-    size_t vMemSize;        // Size of memory in CPUType units
+    size_t  MemByteSize;    // Size of memory in bytes
+    size_t MemSize;        // Size of memory in CPUType units
 
-    size_t vOpcode;         // Current opcode
-    size_t vOperand;        // Current operand
-    size_t vWordSize;       // Word size of the CPU
-    boolean vExec;          // Execution flag
+    size_t Opcode;         // Current opcode
+    size_t Operand;        // Current operand
+    size_t WordSize;       // Word size of the CPU
+    boolean Exec;          // Execution flag
 
     // General-Purpose Registers
-    CPUType* vRA;           // 0 Alpha Accumulator
-    CPUType* vRB;           // 1 Beta Accumulator
-    CPUType* vRC;           // 2 Counter Register
+    CPUType* RA;           // 0 Alpha Accumulator
+    CPUType* RB;           // 1 Beta Accumulator
+    CPUType* RC;           // 2 Counter Register
 
     // Increment Register
-    CPUType* vRI;           // 3 Increment Register
+    CPUType* RI;           // 3 Increment Register
 
     // Address Registers
-    CPUType* vRDH;          // 4 Destination Address High
-    CPUType* vRDL;          // 5 Destination Address Low
-    CPUType* vREH;          // 6 Effective Address High
-    CPUType* vREL;          // 7 Effective Address Low
+    CPUType* RDH;          // 4 Destination Address High
+    CPUType* RDL;          // 5 Destination Address Low
+    CPUType* REH;          // 6 Effective Address High
+    CPUType* REL;          // 7 Effective Address Low
 
     // Stack Pointers
-    CPUType* vSPH;          // 8 Stack Pointer High
-    CPUType* vSPL;          // 9 Stack Pointer Low
-    CPUType* vTPH;          // A Temp Stack Pointer High
-    CPUType* vTPL;          // B Temp Stack Pointer Low
+    CPUType* SPH;          // 8 Stack Pointer High
+    CPUType* SPL;          // 9 Stack Pointer Low
+    CPUType* TPH;          // A Temp Stack Pointer High
+    CPUType* TPL;          // B Temp Stack Pointer Low
 
     // Full Pointers for Double Wide Registers
-    CPUPtrType* vSP;        // Full Stack Pointer (combination of vSPH and vSPL)
-    CPUPtrType* vTP;        // Full Temp Stack Pointer (combination of vTPH and vTPL)
+    CPUPtrType* SP;        // Full Stack Pointer (combination of SPH and SPL)
+    CPUPtrType* TP;        // Full Temp Stack Pointer (combination of TPH and TPL)
 
     // System Control Registers
-    CPUType* vPCH;          // C Program Counter High
-    CPUType* vPCL;          // D Program Counter Low
-    CPUType* vRF;           // E Flag Register
-    CPUType* vRS;           // F Status Flags
+    CPUType* PCH;          // C Program Counter High
+    CPUType* PCL;          // D Program Counter Low
+    CPUType* RF;           // E Flag Register
+    CPUType* RS;           // F Status Flags
 
     // Return Registers
-    CPUType* vRRH;          // 10 Return High
-    CPUType* vRRL;          // 11 Return Low
-    CPUPtrType* vRR;        // Full Return Register (combination of vRRH and vRRL)
+    CPUType* RRH;          // 10 Return High
+    CPUType* RRL;          // 11 Return Low
+    CPUPtrType* RR;        // Full Return Register (combination of RRH and RRL)
 
     // Offset Registers
-    CPUType* vREOH;         // RE Offset Register High
-    CPUType* vREOL;         // RE Offset Register Low
-    CPUType* vRDOH;         // RD Offset Register High
-    CPUType* vRDOL;         // RD Offset Register Low
-    CPUPtrType* vREO;       // Full RE Offset Register (combination of vREOH and vREOL)
-    CPUPtrType* vRDO;       // Full RD Offset Register (combination of vRDOH and vRDOL)
+    CPUType* REOH;         // RE Offset Register High
+    CPUType* REOL;         // RE Offset Register Low
+    CPUType* RDOH;         // RD Offset Register High
+    CPUType* RDOL;         // RD Offset Register Low
+    CPUPtrType* REO;       // Full RE Offset Register (combination of REOH and REOL)
+    CPUPtrType* RDO;       // Full RD Offset Register (combination of RDOH and RDOL)
 
     // Stack Boundaries
-    CPUType* vSSPH;         // 12 Stack Start Pointer High
-    CPUType* vSSPL;         // 13 Stack Start Pointer Low
-    CPUType* vSEPH;         // 14 Stack End Pointer High
-    CPUType* vSEPL;         // 15 Stack End Pointer Low
-    CPUPtrType* vSSP;       // Full Stack Start Pointer (combination of vSSPH and vSSPL)
-    CPUPtrType* vSEP;       // Full Stack End Pointer (combination of vSEPH and vSEPL)
+    CPUType* SSPH;         // 12 Stack Start Pointer High
+    CPUType* SSPL;         // 13 Stack Start Pointer Low
+    CPUType* SEPH;         // 14 Stack End Pointer High
+    CPUType* SEPL;         // 15 Stack End Pointer Low
+    CPUPtrType* SSP;       // Full Stack Start Pointer (combination of SSPH and SSPL)
+    CPUPtrType* SEP;       // Full Stack End Pointer (combination of SEPH and SEPL)
 
     // Temp Stack Boundaries
-    CPUType* vTSPH;         // 16 Temp Stack Start Pointer High
-    CPUType* vTSPL;         // 17 Temp Stack Start Pointer Low
-    CPUType* vTEPH;         // 18 Temp Stack End Pointer High
-    CPUType* vTEPL;         // 19 Temp Stack End Pointer Low
-    CPUPtrType* vTSP;       // Full Temp Stack Start Pointer (combination of vTSPH and vTSPL)
-    CPUPtrType* vTEP;       // Full Temp Stack End Pointer (combination of vTEPH and vTEPL)
+    CPUType* TSPH;         // 16 Temp Stack Start Pointer High
+    CPUType* TSPL;         // 17 Temp Stack Start Pointer Low
+    CPUType* TEPH;         // 18 Temp Stack End Pointer High
+    CPUType* TEPL;         // 19 Temp Stack End Pointer Low
+    CPUPtrType* TSP;       // Full Temp Stack Start Pointer (combination of TSPH and TSPL)
+    CPUPtrType* TEP;       // Full Temp Stack End Pointer (combination of TEPH and TEPL)
 
     // Ring Addresses
-    CPUType* vRING1StartH;  // 1A
-    CPUType* vRING1StartL;  // 1B
-    CPUType* vRING2StartH;  // 1C 
-    CPUType* vRING2StartL;  // 1D
-    CPUType* vRING3StartH;  // 1E
-    CPUType* vRING3StartL;  // 1F
-    CPUPtrType* vRING1Start; // Full Ring 1 Start Pointer
-    CPUPtrType* vRING2Start; // Full Ring 2 Start Pointer
-    CPUPtrType* vRING3Start; // Full Ring 3 Start Pointer
+    CPUType* RING1StartH;  // 1A
+    CPUType* RING1StartL;  // 1B
+    CPUType* RING2StartH;  // 1C 
+    CPUType* RING2StartL;  // 1D
+    CPUType* RING3StartH;  // 1E
+    CPUType* RING3StartL;  // 1F
+    CPUPtrType* RING1Start; // Full Ring 1 Start Pointer
+    CPUPtrType* RING2Start; // Full Ring 2 Start Pointer
+    CPUPtrType* RING3Start; // Full Ring 3 Start Pointer
 
     // Time Registers
-    CPUType* vTR[8];        // 20-27 Time Registers TR0 - TR7
+    CPUType* TR[8];        // 20-27 Time Registers TR0 - TR7
 
     // Time Comparison Registers
-    CPUType* vTC[8];        // 28-2F Time Comparison Registers TC0 - TC7
+    CPUType* TC[8];        // 28-2F Time Comparison Registers TC0 - TC7
 
     // Key Registers
-    CPUType* vPL[16];       // 30-3F Key Registers PL0 - PL15
+    CPUType* PL[16];       // 30-3F Key Registers PL0 - PL15
 
     // Hardware Interrupt
-    CPUType* vHWIMaxH;      // 40
-    CPUType* vHWIMaxL;      // 41
-    CPUType* vHwintFlagAddH;// 42
-    CPUType* vHWIntFlagAddL;// 43
-    CPUType* vHWIVTStH;     // 44
-    CPUType* vHWIVTStL;     // 45
-    CPUType* vHWIVTEndH;    // 46
-    CPUType* vHWIVTEndL;    // 47
+    CPUType* HWIMaxH;      // 40
+    CPUType* HWIMaxL;      // 41
+    CPUType* HWIntFlagAddH;// 42
+    CPUType* HWIntFlagAddL;// 43
+    CPUType* HWIVTStH;     // 44
+    CPUType* HWIVTStL;     // 45
+    CPUType* HWIVTEndH;    // 46
+    CPUType* HWIVTEndL;    // 47
 
     // Software Interrupt
-    CPUType* vSWIMaxH;      // 48
-    CPUType* vSWIMaxL;      // 49
-    CPUType* vSWIntFlagAddH;// 4A
-    CPUType* vSWIntFlagAddL;// 4B
-    CPUType* vSWIVTStH;     // 4C
-    CPUType* vSWIVTStL;     // 4D
-    CPUType* vSWIVTEndH;    // 4E
-    CPUType* vSWIVTEndL;    // 4F
+    CPUType* SWIMaxH;      // 48
+    CPUType* SWIMaxL;      // 49
+    CPUType* SWIntFlagAddH;// 4A
+    CPUType* SWIntFlagAddL;// 4B
+    CPUType* SWIVTStH;     // 4C
+    CPUType* SWIVTStL;     // 4D
+    CPUType* SWIVTEndH;    // 4E
+    CPUType* SWIVTEndL;    // 4F
 
     // Derived Pointers for Direct Memory Access
-    CPUType* vRDAddr;       // Pointer to RD (Destination Address)
-    CPUType* vREAddr;       // Pointer to RE (Effective Address)
-    CPUType* vSPAddr;       // Pointer to Stack Pointer address in memory
-    CPUType* vTPAddr;       // Pointer to Temp Stack Pointer address in memory
-    unsigned char* vPCAddr; // Pointer to Program Counter address in memory
+    CPUType* RDAddr;       // Pointer to RD (Destination Address)
+    CPUType* REAddr;       // Pointer to RE (Effective Address)
+    CPUType* SPAddr;       // Pointer to Stack Pointer address in memory
+    CPUType* TPAddr;       // Pointer to Temp Stack Pointer address in memory
+    unsigned char* PCAddr; // Pointer to Program Counter address in memory
 
-    CPUPtrType* vRD;        // Certain jumps use this register for their dest, also 
-    CPUPtrType* vRE;        // Effective Address
-    CPUPtrType* vPC;        // Program Counter
-    CPUPtrType* vRO;        // RRX+RTX form offset for RE (sometimes RD)
+    CPUPtrType* RD;        // Certain jumps use this register for their dest, also 
+    CPUPtrType* RE;        // Effective Address
+    CPUPtrType* PC;        // Program Counter
+    CPUPtrType* RO;        // RRX+RTX form offset for RE (sometimes RD)
 
     // Status Arrays for Non-Maskable Interrupt (NMI), IRQ, and Halt Status (HS)
-    CPUType* vNMIStatus[4];
-    CPUType* vIRQStatus[4];
-    CPUType* vHSStatus[4];
+    CPUType* NMIStatus[4];
+    CPUType* IRQStatus[4];
+    CPUType* HSStatus[4];
 
 } Risc256;
 
