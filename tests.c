@@ -182,14 +182,8 @@ test_func decrement_tests[] = {
 };
 
 test_func conditional_tests[] = {
-    test_set_t_flag_000_0,
-    test_set_t_flag_001_1,
-    test_set_t_flag_010_0,
-    test_set_t_flag_011_0,
-    test_set_t_flag_100_1,
-    test_set_t_flag_101_1,
-    test_set_t_flag_110_0,
-    test_set_t_flag_111_1,
+    test_set_t_flag_0_0,
+    test_set_t_flag_1_1,
     test_cpu_gt_ra_rb,
     test_cpu_lt_ra_rb,
     test_cpu_eq_ra_rb,

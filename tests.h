@@ -150,15 +150,8 @@ int test_cpu_dec_rb_positive();
 int test_cpu_dec_rb_negative();
 int test_cpu_dec_rb_zero();
 
-int test_set_t_flag_000_0();
-int test_set_t_flag_001_1();
-int test_set_t_flag_010_0();
-int test_set_t_flag_011_0();
-
-int test_set_t_flag_100_1();
-int test_set_t_flag_101_1();
-int test_set_t_flag_110_0();
-int test_set_t_flag_111_1();
+int test_set_t_flag_0_0();
+int test_set_t_flag_1_1();
 
 int test_cpu_gt_ra_rb();
 int test_cpu_lt_ra_rb();
