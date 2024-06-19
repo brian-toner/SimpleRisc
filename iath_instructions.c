@@ -2,14 +2,10 @@
 
 #if 1
 // 0x10
-void cpu_add(Risc256* cpu){
-    cpu_add_register(cpu, cpu->RA, *cpu->RB);
-}
+void cpu_add(Risc256* cpu) { cpu_add_word(cpu, cpu->RA, *cpu->RB, ADD);}
+void cpu_sub(Risc256* cpu) { cpu_add_word(cpu, cpu->RA, -*cpu->RB, SUB);}
 
-//0x11
-void cpu_sub(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RA, *cpu->RB);
-}
+
 
 // 0x12
 void cpu_mul(Risc256* cpu) {
@@ -166,20 +162,10 @@ void cpu_shr(Risc256* cpu) {
 }
 
 // 0x1D - ADC: Add with Carry
-void cpu_adc(Risc256* cpu) {
-    CPUType result = *cpu->RA + *cpu->RB + ((*cpu->RS & C_SET) ? 1 : 0);
-    *cpu->RS = (*cpu->RS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((result < *cpu->RA) ? C_SET : 0);
-    *cpu->RA = result;
-}
+void cpu_adc(Risc256* cpu) { cpu_add_word(cpu, cpu->RA, *cpu->RB + ((*cpu->RS & C_SET) ? 1 : 0), ADD);}
 
 //// 0x1E - SBB: Subtract with Borrow
-void cpu_sbb(Risc256* cpu) {
-    CPUType borrow = (*cpu->RS & C_SET) ? 1 : 0;
-    CPUType result = *cpu->RA - *cpu->RB - borrow;
-    *cpu->RS = (*cpu->RS & ~CZOS_MASK) | (result == 0 ? Z_SET : 0) | ((result & SIGNBIT) ? S_SET : 0) | ((*cpu->RB + borrow > *cpu->RA) ? C_SET : 0);
-    *cpu->RA = result;
-}
-
+void cpu_sbb(Risc256* cpu) { cpu_add_word(cpu, cpu->RA, -*cpu->RB - ((*cpu->RS & C_SET) ? 1 : 0), SUB);}
 
 // 0x1F
 void cpu_twos(Risc256* cpu) {

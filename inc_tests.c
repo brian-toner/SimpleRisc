@@ -57,9 +57,10 @@ int test_cpu_inc_rd_ws() {
     *lCPU->RD = 0xFE; // Initial value close to overflow
     cpu_inc_rd_ws(lCPU);
     
-    int passed = (*lCPU->RD == 0xFE + WORDSIZE) && ((*lCPU->RS & S_SET) != 0);
-    print_int_result("0x33", "inc_rd_ws", *lCPU->RD, 0xFE + WORDSIZE, 0, 0, 0, 0, passed);
-    print_int_result("0x33", "inc_rd_ws (flags)", *lCPU->RS, S_SET, 0, 0, 0, 0, passed);
+    AddressType expected = 0x00FE + WORDSIZE;
+    
+    int passed = assert_address(*lCPU->RD, expected );
+    print_address_result("0x36", "inc_re_ds", *lCPU->RD, expected, *lCPU->RS, 0, 0, 0, passed);
     
     free(lCPU);
     return passed;
@@ -72,13 +73,13 @@ int test_cpu_inc_re_ds() {
     if (!lCPU) return 0;
 
     *lCPU->RE = 0xFE; // Initial value close to overflow
-    cpu_inc_re_ds(lCPU);
+    cpu_inc_re_as(lCPU);
     
-    CPUType expected = 0xFE + ADDRSIZE;
+    AddressType expected = 0x00FE + ADDRSIZE;
     
-    int passed = (*lCPU->RE == expected ) && ((*lCPU->RS & Z_SET) != 0) && ((*lCPU->RS & C_SET) != 0);
-    print_int_result("0x36", "inc_re_ds", *lCPU->RE, expected, 0, 0, 0, 0, passed);
-    print_int_result("0x36", "inc_re_ds (flags)", *lCPU->RS, Z_SET|C_SET + ADDRSIZE, 0, 0, 0, 0, passed);
+    int passed = assert_address(*lCPU->RE, expected );
+    print_address_result("0x36", "inc_re_ds", *lCPU->RE, expected, *lCPU->RS, 0, 0, 0, passed);
+
     
     free(lCPU);
     return passed;

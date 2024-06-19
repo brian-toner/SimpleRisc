@@ -8,7 +8,7 @@ int test_set_t_flag_0_0() {
 
     *lCPU->RS = 0; // X=0, T=0
     set_t_flag(lCPU, 0);
-    int passed = (*lCPU->RS & T_SET) == 0;
+    int passed = assert_int(*lCPU->RS, 0);
 
     print_flag_result("", "set_t_flag 0 0", *lCPU->RS, 0, passed);
     free(lCPU);
@@ -179,10 +179,10 @@ int test_cpu_le_ra_rb() {
     cpu_le_ra_rb(cpu);
 
     CPUType actualStatusFlags = *cpu->RS;
-    CPUType expectedStatusFlags = T_SET;
+    CPUType expectedStatusFlags = 0;
     CPUType actualSystemFlags = *cpu->RF;
     CPUType expectedSystemFlags = 0;
-    int passed = assert_int(*cpu->RS & T_SET, T_SET) && assert_int(actualSystemFlags, expectedSystemFlags);
+    int passed = assert_int(*cpu->RS & T_SET, 0) && assert_int(actualSystemFlags, expectedSystemFlags);
     print_int_result("0x54", "test_cpu_le_ra_rb", 1,1,actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed);
     
     *cpu->RA = 10;

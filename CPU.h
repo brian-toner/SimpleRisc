@@ -23,8 +23,19 @@ extern "C" {
 #ifndef size_t
     typedef unsigned long size_t;
 #endif
-    
 
+#ifndef int8_t
+    typedef char int8_t;
+#endif
+    
+#ifndef uint8_t
+    typedef unsigned char uint8_t;
+#endif
+    
+#ifndef uint16_t
+    typedef unsigned short uint16_t;
+#endif
+    
 #define M_E		2.7182818284590452354	/* e */
 #define M_PI		3.14159265358979323846	/* pi */
     
@@ -36,12 +47,13 @@ extern "C" {
     #define false 0
 #endif
 
-typedef unsigned char uint8_t;
+
     
 #define WORDSIZE 1
 #if WORDSIZE == 1
     #define PAGESIZE 0xFF
     #define SIGNBIT  0x80
+    #define ADDRSIGNBIT  0x8000
     #define ONEBIT 0x01
     #define ADDRSIZE 2
     #define WORDMASK 0xFF
@@ -51,6 +63,10 @@ typedef unsigned char uint8_t;
     typedef unsigned char CPUType;
     typedef char CPUSWord;
     typedef unsigned short CPUPtrType;
+    typedef uint8_t RegType;
+    typedef int8_t SRegType;
+    typedef uint16_t AddressType;
+    
     typedef float CPUFloat;
 #elif WORDSIZE == 2
     #define PAGESIZE 0xFFFF
@@ -119,7 +135,7 @@ typedef unsigned char uint8_t;
 #define X_SET 0b10000000 // Set bitwise multiplication flag
 
 // Special clear constants
-#define CZOS_MASK 0x0F
+#define CZOS_MASK 0xF0
 #define CZOSNU_MASK 0x3F
 #define CZ_S_MASK 0x0B
 #define Z_S_MASK 0x0A

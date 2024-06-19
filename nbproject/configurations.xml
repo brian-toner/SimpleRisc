@@ -46,6 +46,7 @@
         <itemPath>tests.c</itemPath>
       </logicalFolder>
       <itemPath>CPU.c</itemPath>
+      <itemPath>CPU2.c</itemPath>
       <itemPath>half.c</itemPath>
       <itemPath>instructions.c</itemPath>
       <itemPath>main.c</itemPath>
@@ -85,6 +86,8 @@
       <item path="CPU.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="CPU.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CPU2.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="CPU2.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -177,6 +180,8 @@
       <item path="CPU.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="CPU.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CPU2.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="CPU2.h" ex="false" tool="3" flavor2="0">
       </item>

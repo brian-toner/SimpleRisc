@@ -66,12 +66,12 @@ InstructionHandler instructionHandlers[256] = {
     cpu_qtan, cpu_qasin, cpu_qacos, cpu_qatan2, cpu_its, cpu_uits, cpu_itf, cpu_uitf, cpu_qfts, cpu_qfti,
     
     //0x30-0x3F: Increment instructions
-    cpu_inc_ra, cpu_inc_rb, cpu_inc_rc, cpu_inc_rd_ws, cpu_inc_rd_ds, cpu_inc_re_ws, cpu_inc_re_ds, cpu_inc_ri, 
-    cpu_inc_ra_ri, cpu_inc_rb_ri,  cpu_inc_rc_ri, cpu_inc_rd_ri, cpu_inc_re_ri, cpu_inc_sp_ws, cpu_inc_tp_ws, cpu_inc_rd_re_ws,
+    cpu_inc_ra, cpu_inc_rb, cpu_inc_rc, cpu_inc_rd_ws, cpu_inc_rd_as, cpu_inc_re_ws, cpu_inc_re_as, cpu_inc_ri, 
+    cpu_inc_ra_ri, cpu_inc_rb_ri,  cpu_inc_rc_ri, cpu_inc_rd_ri, cpu_inc_re_ri, cpu_inc_sp_ws, cpu_inc_tp_ws, cpu_inc_mem,
     
     //0x40-0x4F: Decrement instructions
-    cpu_dec_ra, cpu_dec_rb, cpu_dec_rc, cpu_dec_rd_ws, cpu_dec_rd_ds, cpu_dec_re_ws, cpu_dec_re_ds, cpu_dec_ri, 
-    cpu_dec_ra_ri, cpu_dec_rb_ri, cpu_dec_rc_ri, cpu_dec_rd_ri, cpu_dec_re_ri, cpu_dec_sp_ws, cpu_dec_tp_ws, cpu_dec_rd_re_ws,
+    cpu_dec_ra, cpu_dec_rb, cpu_dec_rc, cpu_dec_rd_ws, cpu_dec_rd_as, cpu_dec_re_ws, cpu_dec_re_as, cpu_dec_ri, 
+    cpu_dec_ra_ri, cpu_dec_rb_ri, cpu_dec_rc_ri, cpu_dec_rd_ri, cpu_dec_re_ri, cpu_dec_sp_ws, cpu_dec_tp_ws, cpu_dec_mem,
     
     //0x50-0x5F: Comparison instructions
     cpu_gt_ra_rb, cpu_lt_ra_rb, cpu_eq_ra_rb, cpu_ge_ra_rb, cpu_le_ra_rb, cpu_ne_ra_rb, cpu_ispos_ra, cpu_isneg_ra, 

@@ -3,50 +3,14 @@
 
 
 
-void cpu_gt_ra_rb(Risc256* cpu) {
-    bool condition = *cpu->RA > *cpu->RB;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_lt_ra_rb(Risc256* cpu) {
-    bool condition = *cpu->RA < *cpu->RB;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_eq_ra_rb(Risc256* cpu) {
-    bool condition = *cpu->RA == *cpu->RB;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_ge_ra_rb(Risc256* cpu) {
-    bool condition = *cpu->RA >= *cpu->RB;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_le_ra_rb(Risc256* cpu) {
-    bool condition = *cpu->RA <= *cpu->RB;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_ne_ra_rb(Risc256* cpu) {
-    bool condition = *cpu->RA != *cpu->RB;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_ispos_ra(Risc256* cpu) {
-    bool condition = (*cpu->RA & SIGNBIT) == 0;
-    set_t_flag(cpu, condition);
-}
-
-void cpu_isneg_ra(Risc256* cpu) {
-    bool condition = (*cpu->RA & SIGNBIT) != 0;
-    set_t_flag(cpu, condition);
-}
-
-
-static inline bool fcomp_gt(float v1, float v2){
-    return v1>v2;
-}
+void cpu_gt_ra_rb(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA > *cpu->RB));}
+void cpu_lt_ra_rb(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA < *cpu->RB));}
+void cpu_eq_ra_rb(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA == *cpu->RB));}
+void cpu_ge_ra_rb(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA >= *cpu->RB));}
+void cpu_le_ra_rb(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA >= *cpu->RB));}
+void cpu_ne_ra_rb(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA != *cpu->RB));}
+void cpu_ispos_ra(Risc256* cpu) {set_t_flag(cpu,(*cpu->RA & SIGNBIT));}
+void cpu_isneg_ra(Risc256* cpu) {set_t_flag(cpu,*cpu->RA & SIGNBIT);}
 
 static inline void float_comp(Risc256* cpu, CPUType* v1, CPUType* v2) {
     float reg1 = cputype_to_float(*v1);

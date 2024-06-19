@@ -696,10 +696,9 @@ int test_cpu_addc_basic() {
     *lCPU->RS = C_SET; // Set carry flag
 
     cpu_adc(lCPU);
-    int passed = (*lCPU->RA == 156) && ((*lCPU->RS & (C_SET | Z_SET | O_SET)) == 0);
+    int passed = assert_int(*lCPU->RA,156) && assert_int(*lCPU->RS, O_SET|S_SET ) ;
 
-    print_int_result("0x1D", "addc_basic", *lCPU->RA, 156, 0, 0, 0, 0, passed);
-    print_int_result("0x1D", "addc_basic (flags)", *lCPU->RS, *lCPU->RS, 0, 0, 0, 0, passed);
+    print_int_result("0x1D", "addc_basic", *lCPU->RA, 156, *lCPU->RS, O_SET|S_SET, 0, 0, passed);
     free(lCPU);
     return passed;
 }
@@ -716,10 +715,9 @@ int test_cpu_subb_basic() {
     *lCPU->RS = C_SET; // Set carry flag
 
     cpu_sbb(lCPU);
-    int passed = (*lCPU->RA == 44) && ((*lCPU->RS & CZOS_MASK) == 0);
+    int passed = assert_int(*lCPU->RA, 44) && assert_int(*lCPU->RS, 0);
 
-    print_int_result("0x1E", "subb_basic", *lCPU->RA, 44, 0, 0, 0, 0, passed);
-    print_int_result("0x1E", "subb_basic (flags)", *lCPU->RS, *lCPU->RS&CZOS_MASK, 0, 0, 0, 0, passed);
+    print_int_result("0x1E", "subb_basic", *lCPU->RA, 44, *lCPU->RS, 0, 0, 0, passed);
     free(lCPU);
     return passed;
 }

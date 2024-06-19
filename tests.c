@@ -9,6 +9,10 @@ int assert_int(CPUType actual, CPUType expected){
     return (actual==expected);
 }
 
+int assert_address(AddressType actual, AddressType expected){
+    return (actual==expected);
+}
+
 int assert_uint(CPUSWord actual, CPUSWord expected){
     return (actual==expected);
 }
@@ -43,6 +47,11 @@ int print_string_result(const char* opcode, const char* testName, const char* ac
 }
 
 int print_int_result(const char* opcode, const char* testName, CPUType actual, CPUType expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed) {
+    printf("| %-5s | %-50s | %-7d | %-7d | %-7d | %-7d | %-7d | %-7d | %-7s |\n", opcode, testName, actual, expected, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed ? "PASSED" : "FAILED");
+    return passed;
+}
+
+int print_address_result(const char* opcode, const char* testName, AddressType actual, AddressType expected, CPUType actualStatusFlags, CPUType expectedStatusFlags, CPUType actualSystemFlags, CPUType expectedSystemFlags, int passed) {
     printf("| %-5s | %-50s | %-7d | %-7d | %-7d | %-7d | %-7d | %-7d | %-7s |\n", opcode, testName, actual, expected, actualStatusFlags, expectedStatusFlags, actualSystemFlags, expectedSystemFlags, passed ? "PASSED" : "FAILED");
     return passed;
 }

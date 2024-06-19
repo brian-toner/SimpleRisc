@@ -27,6 +27,11 @@ typedef void (*InstructionHandler)(Risc256*);
 
 extern InstructionHandler instructionHandlers[256];
 
+typedef enum {
+    ADD = 0,
+    SUB = 1
+} Operation;
+
 void cpu_set_addr(Risc256* cpu);
 double logbn(double a, double b);
 uint8_t get_current_ring(Risc256* cpu);
@@ -35,7 +40,7 @@ bool is_iopl_authorized(Risc256* cpu, CPUPtrType addr);
 
 
 static inline void set_t_flag(Risc256* cpu, CPUType cv) {
-    *cpu->RS = (cv * T_SET);
+    *cpu->RS = (*cpu->RS&T_CLR) | (cv)?T_SET:0;
 }
 
 void pop_register_from_temp_stack(Risc256* cpu, CPUType* reg, size_t size);
@@ -163,6 +168,48 @@ bool update_stack_pointer_push(Risc256* cpu, size_t increment);
     }
 #endif
 
+static inline void cpu_set_data(Risc256* cpu, RegType value) {
+    *cpu->RR = (*cpu->RR << 4) | value;
+}
+    
+static inline int getRing(Risc256* cpu){
+    return *cpu->RF & 0x03;
+}
+
+static inline bool isRing0(Risc256* cpu){
+    return (getRing(cpu) == 0);
+}
+
+static inline void cpu_add_word(Risc256* cpu, RegType* regPtr, RegType value, Operation op) {
+    RegType reg = *regPtr;
+    RegType result = reg + value;
+
+    RegType flags = *cpu->RS & CZOS_MASK;
+
+    flags |= (result == 0) * Z_SET;
+    flags |= ((result & SIGNBIT) != 0) * S_SET;
+    flags |= (((reg & SIGNBIT) == (value & SIGNBIT)) && ((result & SIGNBIT) != (reg & SIGNBIT))) * O_SET;
+    flags |= ((op == ADD && result < reg) || (op == SUB && reg < result)) * C_SET;
+
+    *cpu->RS = flags;
+    *regPtr = result;
+}
+
+static inline void cpu_add_addr(Risc256* cpu, AddressType* regPtr, RegType value, Operation op) {
+    AddressType reg = *regPtr;
+    AddressType result = reg + value;
+
+    RegType flags = *cpu->RS & CZOS_MASK;
+
+    flags |= (result == 0) * Z_SET;
+    flags |= ((result & ADDRSIGNBIT) != 0) * S_SET;
+    flags |= (((reg & ADDRSIGNBIT) == (value & ADDRSIGNBIT)) && ((result & ADDRSIGNBIT) != (reg & ADDRSIGNBIT))) * O_SET;
+    flags |= (result < reg) * C_SET;
+
+    *cpu->RS = flags;
+    *regPtr = result;
+}
+
 //Needs a home...
 void cpu_qstf(Risc256* cpu);
 void cpu_qsti(Risc256* cpu);
@@ -260,9 +307,9 @@ void cpu_inc_ra(Risc256* cpu);
 void cpu_inc_rb(Risc256* cpu);
 void cpu_inc_rc(Risc256* cpu);
 void cpu_inc_rd_ws(Risc256* cpu);
-void cpu_inc_rd_ds(Risc256* cpu);
+void cpu_inc_rd_as(Risc256* cpu);
 void cpu_inc_re_ws(Risc256* cpu);
-void cpu_inc_re_ds(Risc256* cpu);
+void cpu_inc_re_as(Risc256* cpu);
 void cpu_inc_ri(Risc256* cpu);
 void cpu_inc_ra_ri(Risc256* cpu);
 void cpu_inc_rb_ri(Risc256* cpu);
@@ -271,7 +318,7 @@ void cpu_inc_rd_ri(Risc256* cpu);
 void cpu_inc_re_ri(Risc256* cpu);
 void cpu_inc_sp_ws(Risc256* cpu);
 void cpu_inc_tp_ws(Risc256* cpu);
-void cpu_inc_rd_re_ws(Risc256* cpu);
+void cpu_inc_mem(Risc256* cpu);
 
 // 0x40 - 0x4F: Decrement instructions
 static inline void cpu_dec_register(Risc256* cpu, CPUType* regPtr, CPUType dec);
@@ -281,9 +328,9 @@ void cpu_dec_ra(Risc256* cpu);
 void cpu_dec_rb(Risc256* cpu);
 void cpu_dec_rc(Risc256* cpu);
 void cpu_dec_rd_ws(Risc256* cpu);
-void cpu_dec_rd_ds(Risc256* cpu);
+void cpu_dec_rd_as(Risc256* cpu);
 void cpu_dec_re_ws(Risc256* cpu);
-void cpu_dec_re_ds(Risc256* cpu);
+void cpu_dec_re_as(Risc256* cpu);
 void cpu_dec_ri(Risc256* cpu);
 void cpu_dec_ra_ri(Risc256* cpu);
 void cpu_dec_rb_ri(Risc256* cpu);
@@ -292,7 +339,7 @@ void cpu_dec_rd_ri(Risc256* cpu);
 void cpu_dec_re_ri(Risc256* cpu);
 void cpu_dec_sp_ws(Risc256* cpu);
 void cpu_dec_tp_ws(Risc256* cpu);
-void cpu_dec_rd_re_ws(Risc256* cpu);
+void cpu_dec_mem(Risc256* cpu);
 
 // 0x50 - 0x5F: Comparison instructions
 void cpu_gt_ra_rb(Risc256* cpu);

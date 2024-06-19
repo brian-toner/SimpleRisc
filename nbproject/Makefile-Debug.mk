@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/CPU.o \
+	${OBJECTDIR}/CPU2.o \
 	${OBJECTDIR}/call_instructions.o \
 	${OBJECTDIR}/check_instructions.o \
 	${OBJECTDIR}/cond_instructions.o \
@@ -93,6 +94,11 @@ ${OBJECTDIR}/CPU.o: CPU.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CPU.o CPU.c
+
+${OBJECTDIR}/CPU2.o: CPU2.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CPU2.o CPU2.c
 
 ${OBJECTDIR}/call_instructions.o: call_instructions.c
 	${MKDIR} -p ${OBJECTDIR}

@@ -2,88 +2,29 @@
 
 
 
-static inline void cpu_dec_doubleregister(Risc256* cpu, CPUType* regPtr, CPUType dec) {
-    CPUPtrType reg = *regPtr;
-    CPUPtrType result = reg - dec;
+void cpu_dec_ra(Risc256* cpu) { cpu_add_word(cpu, cpu->RA, -1, SUB);}
+void cpu_dec_rb(Risc256* cpu) { cpu_add_word(cpu, cpu->RB, -1, SUB);}
+void cpu_dec_rc(Risc256* cpu) { cpu_add_word(cpu, cpu->RC, -1, SUB);}
+void cpu_dec_ri(Risc256* cpu) { cpu_add_word(cpu, cpu->RI, -1, SUB);}
 
-    // Calculate flags using bitwise operations to avoid conditionals
-    CPUType flags = *cpu->RS & CZOS_MASK;
+void cpu_dec_rd_ws(Risc256* cpu) { cpu_add_addr(cpu, cpu->RD, -WORDSIZE, SUB);}
+void cpu_dec_rd_as(Risc256* cpu) { cpu_add_addr(cpu, cpu->RD, -ADDRSIZE, SUB);}
+void cpu_dec_re_ws(Risc256* cpu) { cpu_add_addr(cpu, cpu->RE, -WORDSIZE, SUB);}
+void cpu_dec_re_as(Risc256* cpu) { cpu_add_addr(cpu, cpu->RE, -ADDRSIZE, SUB);}
 
-    flags |= (result == 0) * Z_SET;
-    flags |= ((result & SIGNBIT) != 0) * S_SET;
-    flags |= ((reg & SIGNBIT) && !(result & SIGNBIT)) * O_SET;
-    flags |= (reg == 0) * C_SET;
+void cpu_dec_ra_ri(Risc256* cpu) { cpu_add_word(cpu, cpu->RA, -*cpu->RI, SUB);}
+void cpu_dec_rb_ri(Risc256* cpu) { cpu_add_word(cpu, cpu->RB, -*cpu->RI, SUB);}
+void cpu_dec_rc_ri(Risc256* cpu) { cpu_add_word(cpu, cpu->RC, -*cpu->RI, SUB);}
+void cpu_dec_rd_ri(Risc256* cpu) { cpu_add_addr(cpu, cpu->RD, -*cpu->RI, SUB);}
+void cpu_dec_re_ri(Risc256* cpu) { cpu_add_addr(cpu, cpu->RE, -*cpu->RI, SUB);}
 
-    *cpu->RS = flags;
-    *regPtr = result;
-}
-
-void cpu_dec_ra(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RA, 1);
-}
-
-void cpu_dec_rb(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RB, 1);
-}
-
-void cpu_dec_rc(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RC, 1);
-}
-
-void cpu_dec_rd_ws(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->RD, WORDSIZE);
-}
-
-void cpu_dec_rd_ds(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->RD, ADDRSIZE);
-}
-
-void cpu_dec_re_ws(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->RE, WORDSIZE);
-}
-
-void cpu_dec_re_ds(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->RE, ADDRSIZE);
-}
-
-void cpu_dec_ri(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RI, 1);
-}
-
-void cpu_dec_ra_ri(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RA, *cpu->RI);
-}
-
-void cpu_dec_rb_ri(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RB, *cpu->RI);
-}
-
-
-void cpu_dec_rc_ri(Risc256* cpu) {
-    cpu_sub_register(cpu, cpu->RC, *cpu->RI);
-}
-
-void cpu_dec_rd_ri(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->RD, *cpu->RI);
-}
-
-void cpu_dec_re_ri(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->RE, *cpu->RI);
-}
-
-void cpu_dec_sp_ws(Risc256* cpu) {
-    if ((*cpu->RF & P0_SET) == 0 && (*cpu->RF & P1_SET) == 0) {
-        cpu_dec_doubleregister(cpu, cpu->SP, WORDSIZE);
+void cpu_dec_sp_ws(Risc256* cpu) { 
+    if(isRing0(cpu)){
+        cpu_add_addr(cpu, cpu->SP, -WORDSIZE, SUB);
     } else {
         *cpu->RF |= (E_SET | A_SET);
     }
-}
 
-void cpu_dec_tp_ws(Risc256* cpu) {
-    cpu_dec_doubleregister(cpu, cpu->TP, WORDSIZE);
 }
-
-void cpu_dec_rd_re_ws(Risc256* cpu) {
-    *cpu->RD -= WORDSIZE;
-    *cpu->RE -= WORDSIZE;
-}
+void cpu_dec_tp_ws(Risc256* cpu) { cpu_add_addr(cpu, cpu->TP, -WORDSIZE, SUB);}
+void cpu_dec_mem(Risc256* cpu) { cpu_add_addr(cpu, cpu->RD, -WORDSIZE, SUB); cpu_add_addr(cpu, cpu->RE, -WORDSIZE, SUB);}
