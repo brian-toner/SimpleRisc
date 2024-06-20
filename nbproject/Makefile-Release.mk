@@ -60,6 +60,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/output.o \
 	${OBJECTDIR}/pop_instructions.o \
 	${OBJECTDIR}/push_instructions.o \
+	${OBJECTDIR}/push_test.o \
 	${OBJECTDIR}/set_instructions.o \
 	${OBJECTDIR}/set_tests.o \
 	${OBJECTDIR}/tests.o \
@@ -214,6 +215,11 @@ ${OBJECTDIR}/push_instructions.o: push_instructions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/push_instructions.o push_instructions.c
+
+${OBJECTDIR}/push_test.o: push_test.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/push_test.o push_test.c
 
 ${OBJECTDIR}/set_instructions.o: set_instructions.c
 	${MKDIR} -p ${OBJECTDIR}

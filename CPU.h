@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
+#include <string.h>
     
 #ifndef size_t
     typedef unsigned long size_t;
@@ -167,6 +168,8 @@ typedef unsigned char bool;
 #endif
 
 
+
+
 typedef struct {
     unsigned char*  MemByte; // Memory array (byte-level access)
     CPUType* Mem;          // Memory array (CPUType-level access)
@@ -250,14 +253,16 @@ typedef struct {
     CPUPtrType* RING3Start; // Full Ring 3 Start Pointer
 
     // Time Registers
-    CPUType* TR[8];        // 20-27 Time Registers TR0 - TR7
+    CPUType* TR;        // 20-27 Time Registers TR0 - TR7
 
     // Time Comparison Registers
-    CPUType* TC[8];        // 28-2F Time Comparison Registers TC0 - TC7
+    CPUType* TC;        // 28-2F Time Comparison Registers TC0 - TC7
 
     // Key Registers
-    CPUType* PL[16];       // 30-3F Key Registers PL0 - PL15
+    RegType* PL; // Key Register - Used for elevating privilege level
+    RegType* KC; // Key Cache Register - Used for caching user inputted key, when KC=PL admin elevation is enabled
 
+    
     // Hardware Interrupt
     CPUType* HWIMaxH;      // 40
     CPUType* HWIMaxL;      // 41
@@ -296,6 +301,9 @@ typedef struct {
     CPUType* HSStatus[4];
 
 } Risc256;
+
+
+
 
 typedef void (*cpu_inst)(Risc256*);
 

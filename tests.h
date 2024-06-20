@@ -164,5 +164,9 @@ int test_cpu_fgt_ra_rb();
 int test_cpu_fgt_ra_rb_inf();
 int test_cpu_fgt_ra_rb_undef();
 
+
+
+int test_cpu_push();
+
 #endif /* TESTS_H */
 

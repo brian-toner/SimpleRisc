@@ -42,6 +42,7 @@
         <itemPath>fath_tests.c</itemPath>
         <itemPath>iath_tests.c</itemPath>
         <itemPath>inc_tests.c</itemPath>
+        <itemPath>push_test.c</itemPath>
         <itemPath>set_tests.c</itemPath>
         <itemPath>tests.c</itemPath>
       </logicalFolder>
@@ -145,6 +146,8 @@
       </item>
       <item path="push_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="push_test.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="set_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="set_tests.c" ex="false" tool="0" flavor2="0">
@@ -238,6 +241,8 @@
       <item path="pop_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="push_instructions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="push_test.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="set_instructions.c" ex="false" tool="0" flavor2="0">
       </item>
