@@ -171,7 +171,22 @@ bool update_stack_pointer_push(Risc256* cpu, size_t increment);
 static inline void cpu_set_data(Risc256* cpu, RegType value) {
     *cpu->RR = (*cpu->RR << 4) | value;
 }
+   
+static inline int getRingFromAddress(Risc256* cpu, AddressType address){
     
+    if(address < *cpu->RING1Start){
+        return 0;
+    } else if (address < *cpu->RING2Start){
+        return 1;
+    } else if (address < *cpu->RING3Start){
+        return 2;
+    } else {
+        return 3;
+    }
+        
+}
+
+
 static inline int getRing(Risc256* cpu){
     return *cpu->RF & 0x03;
 }

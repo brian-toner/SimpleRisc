@@ -241,6 +241,7 @@ int main(int argc, char** argv) {
     printf("Total Passed: %d (%3.2f%%)\n", (int)count, count / total * 100);
 
     test_cpu_push();
+    test_cpu_re_push();
     
     return 0;
 }

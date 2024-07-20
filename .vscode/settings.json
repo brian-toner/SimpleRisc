@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "CPU2.h":"c",
+        "CPU.h": "c",
+        "half.h": "c",
+        "instructions.h": "c",
+        "minifloat.h": "c",
+        "output.h": "c",
+        "tests.h" 
+    }
+}

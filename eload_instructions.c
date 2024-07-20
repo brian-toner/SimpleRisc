@@ -1,46 +1,31 @@
-#include "CPU.h"
+#include "instructions.h"
 
-void cpu_pop_re_ra(Risc256* cpu) {
-    if (is_iopl_authorized(cpu, *cpu->RE)) {
-        memcpy(cpu->RA, cpu-> MemByte + *cpu->RE, WORDSIZE);
-        *cpu->RE -= WORDSIZE;
+static inline void cpu_pop_re_data(Risc256* cpu, CPUType* reg, size_t size, bool decrement){
+    // Check ring permissions
+    if(getRing(cpu) < getRingFromAddress(cpu, *cpu->RE)){
+        *cpu->RF |= E_SET | A_SET;
+        //Throw interrupt
+        return;
     }
+    
+    // Check memory boundary and copy data
+    if (*cpu->RE >= WORDSIZE * size) { 
+        *cpu->RE -= WORDSIZE * size * (decrement?1:0);
+        CPUType* REAddr = cpu->MemByte+(*cpu->RE);
+        memcpy(reg, REAddr, WORDSIZE*size);
+    } else {
+        //Throw interrupt.
+        *cpu->RF |= E_SET;
+    }
+        
 }
 
-void cpu_pop_re_rb(Risc256* cpu) {
-    if (is_iopl_authorized(cpu, *cpu->RE)) {
-        memcpy(cpu->RB, cpu-> MemByte + *cpu->RE, WORDSIZE);
-        *cpu->RE -= WORDSIZE;
-    }
-}
-
-void cpu_pop_re_rc(Risc256* cpu) {
-    if (is_iopl_authorized(cpu, *cpu->RE)) {
-        memcpy(cpu->RC, cpu-> MemByte + *cpu->RE, WORDSIZE);
-        *cpu->RE -= WORDSIZE;
-    }
-}
-
-void cpu_pop_re_ri(Risc256* cpu) {
-    if (is_iopl_authorized(cpu, *cpu->RE)) {
-        memcpy(cpu->RI, cpu-> MemByte + *cpu->RE, WORDSIZE);
-        *cpu->RE -= WORDSIZE;
-    }
-}
-
-void cpu_pop_re_rd(Risc256* cpu) {
-    if (is_iopl_authorized(cpu, *cpu->RE)) {
-        memcpy((CPUType*)cpu->RD, cpu-> MemByte + *cpu->RE, ADDRSIZE);
-        *cpu->RE -= ADDRSIZE;
-    }
-}
-
-void cpu_pop_re_rr(Risc256* cpu) {
-    if (is_iopl_authorized(cpu, *cpu->RE)) {
-        memcpy((CPUType*)cpu->RR, cpu-> MemByte + *cpu->RE, ADDRSIZE);
-        *cpu->RE -= ADDRSIZE;
-    }
-}
+void cpu_pop_re_ra(Risc256* cpu) { cpu_pop_re_data(cpu, cpu->RA, WORDSIZE, true); }
+void cpu_pop_re_rb(Risc256* cpu) { cpu_pop_re_data(cpu, cpu->RB, WORDSIZE, true); }
+void cpu_pop_re_rc(Risc256* cpu) { cpu_pop_re_data(cpu, cpu->RC, WORDSIZE, true); }
+void cpu_pop_re_ri(Risc256* cpu) { cpu_pop_re_data(cpu, cpu->RI, WORDSIZE, true); }
+void cpu_pop_re_rd(Risc256* cpu) { cpu_pop_re_data(cpu, (RegType*)cpu->RD, ADDRSIZE, true); }
+void cpu_pop_re_rr(Risc256* cpu) { cpu_pop_re_data(cpu, (RegType*)cpu->RR, ADDRSIZE, true); }
 
 void cpu_cpy_ra_re(Risc256* cpu) {
     if (is_iopl_authorized(cpu, *cpu->RE)) {
